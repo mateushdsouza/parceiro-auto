@@ -12,7 +12,7 @@ public class Transacao {
         this.tipo = tipo;
         this.descricao = descricao;
         this.valor = valor;
-        this.data = new Date();;
+        this.data = new Date();
     }
 
     public String getTipo() { return tipo; }

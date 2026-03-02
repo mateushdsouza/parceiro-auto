@@ -33,8 +33,8 @@ public class Main {
 
         System.out.println("Bem-vindo, " + usuarioLogado.getUser() + "!");
 
-        int opcaoEmpresa = -1;
-        while (opcaoEmpresa != 0) {
+        int escolha = -1;
+        while (escolha != 0) {
             System.out.println("\n--- SELECIONE UMA EMPRESA ---");
             int i = 0;
             for (i = 0; i < usuarioLogado.getEmpresas().size(); i++) {
@@ -48,29 +48,12 @@ public class Main {
             System.out.println(opcaoSair + " - Sair");
             System.out.print("Escolha: ");
 
-            int escolha = scanner.nextInt();
+            escolha = scanner.nextInt();
             scanner.nextLine(); // Limpar buffer
 
             if (escolha > 0 && escolha <= usuarioLogado.getEmpresas().size()) {
                 Empresa empresaAtiva = usuarioLogado.getEmpresas().get(escolha - 1);
                 System.out.println("Entrando na empresa: " + empresaAtiva.getNome());
-
-            } else if (escolha == opcaoCadastrar) {
-                System.out.print("Nome da Empresa: ");
-                String nomeEmp = scanner.nextLine();
-                System.out.print("CNPJ: ");
-                String cnpjEmp = scanner.nextLine();
-
-                empresaService.cadastrarEmpresa(usuarioLogado, nomeEmp, cnpjEmp);
-
-            } else if (escolha == opcaoSair) {
-                System.out.println("Saindo...");
-                break;
-            } else {
-                System.out.println("Opção inválida!");
-            }
-            if (escolha > 0 && escolha <= usuarioLogado.getEmpresas().size()) {
-                Empresa empresaAtiva = usuarioLogado.getEmpresas().get(escolha - 1);
 
                 int opcaoContabil = -1;
                 while (opcaoContabil != 4 && opcaoContabil != 5) {
@@ -109,9 +92,20 @@ public class Main {
                             System.out.println("Opção inválida!");
                     }
                 }
+            } else if (escolha == opcaoCadastrar) {
+                System.out.print("Nome da Empresa: ");
+                String nomeEmp = scanner.nextLine();
+                System.out.print("CNPJ: ");
+                String cnpjEmp = scanner.nextLine();
+
+                empresaService.cadastrarEmpresa(usuarioLogado, nomeEmp, cnpjEmp);
+
+            } else if (escolha == opcaoSair) {
+                System.out.println("Saindo...");
+                break;
+            } else {
+                System.out.println("Opção inválida!");
             }
         }
     }
 }
-
-
