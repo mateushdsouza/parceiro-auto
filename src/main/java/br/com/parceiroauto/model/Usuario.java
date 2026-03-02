@@ -1,20 +1,20 @@
 package br.com.parceiroauto.model;
 
 public class Usuario {
-    private String email;
+    private String user;
     private String senha;
 
-    public Usuario(String email, String senha) {
-        this.email = email;
+    public Usuario(String user, String senha) {
+        this.user = user;
         this.senha = senha;
     }
 
-    public String getEmail() {
-        return email;
+    public String getUser() {
+        return user;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setUser(String user) {
+        this.user = user;
     }
 
     public String getSenha() {
