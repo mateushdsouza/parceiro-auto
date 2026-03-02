@@ -1,8 +1,20 @@
 package br.com.parceiroauto.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Usuario {
     private String user;
     private String senha;
+    private List<Empresa> empresas = new ArrayList<>();
+
+    public void adicionarEmpresa(Empresa empresa) {
+        this.empresas.add(empresa);
+    }
+
+    public List<Empresa> getEmpresas() {
+        return empresas;
+    }
 
     public Usuario(String user, String senha) {
         this.user = user;

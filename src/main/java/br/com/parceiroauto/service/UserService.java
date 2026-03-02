@@ -10,13 +10,13 @@ public class UserService {
         this.repo = repo;
     }
 
-    public boolean login(String userDigitado, String senhaDigitada) {
+    public Usuario fazerLogin(String userDigitado, String senhaDigitada) {
         Usuario userEncontrado = repo.buscarPorUser(userDigitado);
 
-        if (userEncontrado == null) {
-            return false;
+        if (userEncontrado != null && userEncontrado.getSenha().equals(senhaDigitada)) {
+            return userEncontrado;
         }
 
-        return userEncontrado.getSenha().equals(senhaDigitada);
+        return null;
     }
 }
