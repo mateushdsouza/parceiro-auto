@@ -12,6 +12,10 @@ public class Usuario {
         this.empresas.add(empresa);
     }
 
+    public void removerEmpresa(Empresa empresa) {
+        this.empresas.remove(empresa);
+    }
+
     public List<Empresa> getEmpresas() {
         return empresas;
     }
