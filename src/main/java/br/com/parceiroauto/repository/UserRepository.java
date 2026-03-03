@@ -7,6 +7,7 @@ import java.util.List;
 
 public class UserRepository {
     private List<Usuario> usuarios = new ArrayList<>();
+    private List<Empresa> empresas = new ArrayList<>();
 
     public UserRepository() {
         Usuario carlos = new Usuario("Carlos", "1234");
@@ -27,6 +28,16 @@ public class UserRepository {
             if (u.getUser().equals(user)) {
                 return u;
             }
+        }
+        return null;
+    }
+
+    public Empresa buscarPorCNPJ(String cnpj) {
+        for (Empresa e : empresas) {
+            if (e.getCnpj().equals(cnpj)) {
+                return e;
+            }
+
         }
         return null;
     }

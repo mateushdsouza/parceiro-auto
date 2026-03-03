@@ -42,9 +42,11 @@ public class Main {
             }
 
             int opcaoCadastrar = i + 1;
-            int opcaoSair = i + 2;
+            int opcaoRemover = i + 2;
+            int opcaoSair = i + 3;
 
             System.out.println(opcaoCadastrar + " - Cadastrar nova empresa");
+            System.out.println(opcaoRemover + " - Remover empresa");
             System.out.println(opcaoSair + " - Sair");
             System.out.print("Escolha: ");
 
@@ -99,6 +101,27 @@ public class Main {
                 String cnpjEmp = scanner.nextLine();
 
                 empresaService.cadastrarEmpresa(usuarioLogado, nomeEmp, cnpjEmp);
+
+            } else if (escolha == opcaoRemover) {
+                int idRemover = 0;
+                for (i = 0; i < usuarioLogado.getEmpresas().size(); i++) {
+                    System.out.println((i + 1) + " - " + usuarioLogado.getEmpresas().get(i).getNome());
+                }
+                System.out.println("Qual empresa deseja remover?(digite o id): ");
+                idRemover = scanner.nextInt();
+                scanner.nextLine(); // limpar buffer
+
+                if (idRemover <= 0 || idRemover > usuarioLogado.getEmpresas().size()) {
+                    System.out.println("ID inválido!");
+                } else {
+
+                    Empresa empresaSelecionada = usuarioLogado.getEmpresas().get(idRemover - 1);
+
+                    System.out.println("Digite o CNPJ para confirmar a remoção: ");
+                    String cnpjConfirmacao = scanner.nextLine();
+
+                    empresaService.removerEmpresa(usuarioLogado, cnpjConfirmacao);
+                }
 
             } else if (escolha == opcaoSair) {
                 System.out.println("Saindo...");
