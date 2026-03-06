@@ -69,6 +69,8 @@ public class Visualizacao {
                 int opcaoContabil = -1;
                 while (opcaoContabil != 4) {
                     System.out.println("\n--- " + empresaAtiva.getNome().toUpperCase() + " ---");
+                    System.out.printf("SALDO ATUAL: R$ %.2f%n", empresaAtiva.calcularSaldo());
+                    System.out.println("----------------------");
                     System.out.println("1 - Registro de Entrada");
                     System.out.println("2 - Registro de Saida");
                     System.out.println("3 - Relatorio");
@@ -82,11 +84,11 @@ public class Visualizacao {
                     switch (opcaoContabil) {
                         case 1:
                             System.out.println("Registrando Entrada...");
-                            menuRegistroEntrada(empresaAtiva);
+                            menuRegistroFinanceiro(empresaAtiva, TipoTransacao.ENTRADA);
                             break;
                         case 2:
                             System.out.println("Registrando Saída...");
-                            menuRegistroSaida(empresaAtiva);
+                            menuRegistroFinanceiro(empresaAtiva, TipoTransacao.SAIDA);
                             break;
                         case 3:
                             System.out.println("--- RELATÓRIO FINANCEIRO ---");
@@ -147,24 +149,18 @@ public class Visualizacao {
         }
     }
 
-    public static void menuRegistroEntrada(Empresa empresaAtiva){
+    public static void menuRegistroFinanceiro(Empresa empresaAtiva, TipoTransacao tipo) {
         Scanner scanner = new Scanner(System.in);
         TransacaoService transacaoService = new TransacaoService();
 
-        int opcaoTransacao;
-        double valor;
-        String descricao;
-        FormaDeTransacao forma = null;
-
         System.out.println("Qual seria a forma da transacao?");
-
         System.out.println("1 - Pix");
         System.out.println("2 - Cartao");
         System.out.println("3 - Dinheiro");
-
-        opcaoTransacao = scanner.nextInt();
+        int opcaoTransacao = scanner.nextInt();
         scanner.nextLine();
 
+        FormaDeTransacao forma;
         switch (opcaoTransacao) {
 
             case 1:
@@ -185,59 +181,17 @@ public class Visualizacao {
         }
 
         System.out.println("Digite o valor da transacao:");
-        valor = scanner.nextDouble();
+        double valor = scanner.nextDouble();
         scanner.nextLine();
 
         System.out.println("Coloque a descricao:");
-        descricao = scanner.nextLine();
+        String descricao = scanner.nextLine();
 
-        transacaoService.registrarEntrada(empresaAtiva, valor, descricao, forma);
-    }
-
-    public static void menuRegistroSaida(Empresa empresaAtiva){
-        Scanner scanner = new Scanner(System.in);
-        TransacaoService transacaoService = new TransacaoService();
-
-        int opcaoTransacao;
-        double valor;
-        String descricao;
-        FormaDeTransacao forma = null;
-
-        System.out.println("Qual seria a forma da transacao?");
-
-        System.out.println("1 - Pix");
-        System.out.println("2 - Cartao");
-        System.out.println("3 - Dinheiro");
-
-        opcaoTransacao = scanner.nextInt();
-        scanner.nextLine();
-
-        switch (opcaoTransacao) {
-
-            case 1:
-                forma = FormaDeTransacao.PIX;
-                break;
-
-            case 2:
-                forma = FormaDeTransacao.CARTAO;
-                break;
-
-            case 3:
-                forma = FormaDeTransacao.DINHEIRO;
-                break;
-
-            default:
-                System.out.println("Opção inválida!");
-                return;
+        if (tipo == TipoTransacao.ENTRADA) {
+            transacaoService.registrarEntrada(empresaAtiva, valor, descricao, forma);
+        } else {
+            transacaoService.registrarSaida(empresaAtiva, valor, descricao, forma);
         }
-
-        System.out.println("Digite o valor da transacao:");
-        valor = scanner.nextDouble();
-        scanner.nextLine();
-
-        System.out.println("Coloque a descricao:");
-        descricao = scanner.nextLine();
-
-        transacaoService.registrarSaida(empresaAtiva, valor, descricao, forma);
+        System.out.println("Registro concluído com sucesso!");
     }
 }
