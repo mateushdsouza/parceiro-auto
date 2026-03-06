@@ -1,9 +1,9 @@
 package br.com.parceiroauto.view;
 
-import br.com.parceiroauto.model.Empresa;
-import br.com.parceiroauto.model.Usuario;
+import br.com.parceiroauto.model.*;
 import br.com.parceiroauto.repository.UserRepository;
 import br.com.parceiroauto.service.EmpresaService;
+import br.com.parceiroauto.service.TransacaoService;
 import br.com.parceiroauto.service.UserService;
 
 import java.util.Scanner;
@@ -82,15 +82,22 @@ public class Visualizacao {
                     switch (opcaoContabil) {
                         case 1:
                             System.out.println("Registrando Entrada...");
-                            // FALTA FAZER
+                            menuRegistroEntrada(empresaAtiva);
                             break;
                         case 2:
                             System.out.println("Registrando Saída...");
-                            // FALTA FAZER
+                            menuRegistroSaida(empresaAtiva);
                             break;
                         case 3:
                             System.out.println("--- RELATÓRIO FINANCEIRO ---");
-                            // FALTA FAZER
+                            for (Transacao t : empresaAtiva.getTransacoes()) {
+                                System.out.println("Tipo: " + t.getTipo());
+                                System.out.println("Descricao: " + t.getDescricao());
+                                System.out.println("Valor: " + t.getValor());
+                                System.out.println("Forma: " + t.getForma());
+                                System.out.println("Data: " + t.getData());
+                                System.out.println("----------------------");
+                            }
                             break;
                         case 4:
                             System.out.println("Voltando...");
@@ -138,5 +145,99 @@ public class Visualizacao {
                 System.out.println("Opção inválida!");
             }
         }
+    }
+
+    public static void menuRegistroEntrada(Empresa empresaAtiva){
+        Scanner scanner = new Scanner(System.in);
+        TransacaoService transacaoService = new TransacaoService();
+
+        int opcaoTransacao;
+        double valor;
+        String descricao;
+        FormaDeTransacao forma = null;
+
+        System.out.println("Qual seria a forma da transacao?");
+
+        System.out.println("1 - Pix");
+        System.out.println("2 - Cartao");
+        System.out.println("3 - Dinheiro");
+
+        opcaoTransacao = scanner.nextInt();
+        scanner.nextLine();
+
+        switch (opcaoTransacao) {
+
+            case 1:
+                forma = FormaDeTransacao.PIX;
+                break;
+
+            case 2:
+                forma = FormaDeTransacao.CARTAO;
+                break;
+
+            case 3:
+                forma = FormaDeTransacao.DINHEIRO;
+                break;
+
+            default:
+                System.out.println("Opção inválida!");
+                return;
+        }
+
+        System.out.println("Digite o valor da transacao:");
+        valor = scanner.nextDouble();
+        scanner.nextLine();
+
+        System.out.println("Coloque a descricao:");
+        descricao = scanner.nextLine();
+
+        transacaoService.registrarEntrada(empresaAtiva, valor, descricao, forma);
+    }
+
+    public static void menuRegistroSaida(Empresa empresaAtiva){
+        Scanner scanner = new Scanner(System.in);
+        TransacaoService transacaoService = new TransacaoService();
+
+        int opcaoTransacao;
+        double valor;
+        String descricao;
+        FormaDeTransacao forma = null;
+
+        System.out.println("Qual seria a forma da transacao?");
+
+        System.out.println("1 - Pix");
+        System.out.println("2 - Cartao");
+        System.out.println("3 - Dinheiro");
+
+        opcaoTransacao = scanner.nextInt();
+        scanner.nextLine();
+
+        switch (opcaoTransacao) {
+
+            case 1:
+                forma = FormaDeTransacao.PIX;
+                break;
+
+            case 2:
+                forma = FormaDeTransacao.CARTAO;
+                break;
+
+            case 3:
+                forma = FormaDeTransacao.DINHEIRO;
+                break;
+
+            default:
+                System.out.println("Opção inválida!");
+                return;
+        }
+
+        System.out.println("Digite o valor da transacao:");
+        valor = scanner.nextDouble();
+        scanner.nextLine();
+
+        System.out.println("Coloque a descricao:");
+        descricao = scanner.nextLine();
+
+        transacaoService.registrarSaida(empresaAtiva, valor, descricao, forma);
     }
 }
