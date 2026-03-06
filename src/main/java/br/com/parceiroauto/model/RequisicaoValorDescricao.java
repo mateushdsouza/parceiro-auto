@@ -1,11 +1,11 @@
 package br.com.parceiroauto.model;
 
-public abstract class RequisicaoValorDescrica {
+public abstract class RequisicaoValorDescricao {
 
     private double valor;
     private String descricao;
 
-    public RequisicaoValorDescrica(double valor, String descricao){
+    public RequisicaoValorDescricao(double valor, String descricao){
         this.valor = valor;
         this.descricao = descricao;
     }

@@ -15,7 +15,9 @@ public class TransacaoService {
     }
 
     public void registrarSaida(Empresa empresa, double valor, String descricao, FormaDeTransacao forma){
-
+        if (empresa.calcularSaldo() < valor) {
+            System.out.println("AVISO: Saldo insuficiente para esta saída, mas o registro será mantido.");
+        }
         TipoTransacao tipo = TipoTransacao.SAIDA;
         Transacao transacao = new Transacao(tipo, descricao, valor, forma);
         empresa.getTransacoes().add(transacao);

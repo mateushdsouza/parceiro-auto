@@ -16,4 +16,16 @@ public class Empresa {
     public String getNome() { return nome; }
     public String getCnpj() { return cnpj; }
     public List<Transacao> getTransacoes() { return transacoes; }
+
+    public double calcularSaldo() {
+        double saldo = 0;
+        for (Transacao t : transacoes) {
+            if (t.getTipo() == TipoTransacao.ENTRADA) {
+                saldo += t.getValor();
+            } else {
+                saldo -= t.getValor();
+            }
+        }
+        return saldo;
+    }
 }
