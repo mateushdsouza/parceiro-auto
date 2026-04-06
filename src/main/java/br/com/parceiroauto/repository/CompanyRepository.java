@@ -2,6 +2,7 @@ package br.com.parceiroauto.repository;
 
 import br.com.parceiroauto.entity.Company;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 
 public class CompanyRepository {
 
@@ -9,10 +10,10 @@ public class CompanyRepository {
 
     public CompanyRepository(EntityManager em) { this.em = em; }
 
-    public void save(Company cp) {
+    public void save(Company company) {
         em.getTransaction().begin();
         try {
-            em.persist(cp);
+            em.persist(company);
             em.getTransaction().commit();
         } catch (Exception e) {
             em.getTransaction().rollback();
@@ -20,25 +21,39 @@ public class CompanyRepository {
         }
     }
 
-    public Company searchById (Long id) {return em.find(Company.class, id);}
+    public Company findById(Long id) {
+        return em.find(Company.class, id);
+    }
 
-    public void update(Company cp) {
+    public Company findByCnpj(String cnpj) {
+        try {
+            return em.createQuery(
+                    "SELECT c FROM Company c WHERE c.cnpj = :cnpj", Company.class)
+                    .setParameter("cnpj", cnpj)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    public void update(Company company) {
         em.getTransaction().begin();
         try {
-            em.merge(cp);
+            em.merge(company);
             em.getTransaction().commit();
         } catch (Exception e) {
             em.getTransaction().rollback();
             throw e;
         }
     }
-    public void delete(Company cp) {
+
+    public void delete(Company company) {
         em.getTransaction().begin();
         try {
-            Company company = em.find(Company.class, cp.getId());
+            Company managedCompany = em.find(Company.class, company.getId());
 
-            if (company != null) {
-                em.remove(company);
+            if (managedCompany != null) {
+                em.remove(managedCompany);
             }
 
             em.getTransaction().commit();
