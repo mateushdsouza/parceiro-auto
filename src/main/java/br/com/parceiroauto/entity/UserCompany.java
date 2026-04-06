@@ -1,11 +1,11 @@
 package br.com.parceiroauto.entity;
 
-
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "user_company")
 public class UserCompany {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -18,13 +18,14 @@ public class UserCompany {
     @JoinColumn(name = "fk_id_user", nullable = false)
     private User user;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String role;
+    private UserCompanyRole role;
 
     public UserCompany() {
     }
 
-    public UserCompany(Company company, User user, String role) {
+    public UserCompany(Company company, User user, UserCompanyRole role) {
         this.company = company;
         this.user = user;
         this.role = role;
@@ -54,11 +55,11 @@ public class UserCompany {
         this.user = user;
     }
 
-    public String getRole() {
+    public UserCompanyRole getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(UserCompanyRole role) {
         this.role = role;
     }
 }
