@@ -1,6 +1,6 @@
 package br.com.parceiroauto.service;
 
-import br.com.parceiroauto.model.Usuario;
+import br.com.parceiroauto.entity.Usuario;
 import br.com.parceiroauto.repository.UserRepository;
 
 public class UserService {

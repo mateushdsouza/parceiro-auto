@@ -1,6 +1,6 @@
 package br.com.parceiroauto.view;
 
-import br.com.parceiroauto.model.*;
+import br.com.parceiroauto.entity.*;
 import br.com.parceiroauto.repository.UserRepository;
 import br.com.parceiroauto.service.EmpresaService;
 import br.com.parceiroauto.service.TransacaoService;
@@ -8,7 +8,7 @@ import br.com.parceiroauto.service.UserService;
 
 import java.util.Scanner;
 
-public class Visualizacao {
+public class View {
 
     public static Usuario menuLogin() {
         UserRepository repo = new UserRepository();
@@ -90,7 +90,7 @@ public class Visualizacao {
                             break;
                         case 3:
                             System.out.println("--- RELATÓRIO FINANCEIRO ---");
-                            for (Transacao t : empresaAtiva.getTransacoes()) {
+                            for (Transaction t : empresaAtiva.getTransacoes()) {
                                 System.out.println("Tipo: " + t.getTipo());
                                 System.out.println("Descricao: " + t.getDescricao());
                                 System.out.println("Valor: " + t.getValor());
@@ -154,7 +154,7 @@ public class Visualizacao {
         int opcaoTransacao;
         double valor;
         String descricao;
-        FormaDeTransacao forma = null;
+        TransactionForm forma = null;
 
         System.out.println("Qual seria a forma da transacao?");
 
@@ -168,15 +168,15 @@ public class Visualizacao {
         switch (opcaoTransacao) {
 
             case 1:
-                forma = FormaDeTransacao.PIX;
+                forma = TransactionForm.PIX;
                 break;
 
             case 2:
-                forma = FormaDeTransacao.CARTAO;
+                forma = TransactionForm.CARTAO;
                 break;
 
             case 3:
-                forma = FormaDeTransacao.DINHEIRO;
+                forma = TransactionForm.DINHEIRO;
                 break;
 
             default:
@@ -201,7 +201,7 @@ public class Visualizacao {
         int opcaoTransacao;
         double valor;
         String descricao;
-        FormaDeTransacao forma = null;
+        TransactionForm forma = null;
 
         System.out.println("Qual seria a forma da transacao?");
 
@@ -215,15 +215,15 @@ public class Visualizacao {
         switch (opcaoTransacao) {
 
             case 1:
-                forma = FormaDeTransacao.PIX;
+                forma = TransactionForm.PIX;
                 break;
 
             case 2:
-                forma = FormaDeTransacao.CARTAO;
+                forma = TransactionForm.CARTAO;
                 break;
 
             case 3:
-                forma = FormaDeTransacao.DINHEIRO;
+                forma = TransactionForm.DINHEIRO;
                 break;
 
             default:

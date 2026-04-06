@@ -1,11 +1,11 @@
-package br.com.parceiroauto.model;
+package br.com.parceiroauto.entity;
 
 
 import java.util.List;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "Company")
+@Table(name = "company")
 public class Company {
 
     @Id
@@ -21,17 +21,19 @@ public class Company {
     @Column(nullable = false, length = 50)
     private String nomeFantasia;
 
-    @OneToMany(mappedBy = "Companies")
+    @OneToMany(mappedBy = "company")
     private List<UserCompany> userCompanies;
 
-    public Company(Long id, String cnpj, String razaoSocial, String nomeFantasia) {
-        this.id = id;
+    public Company() {
+    }
+
+    public Company( String cnpj, String razaoSocial, String nomeFantasia) {
         this.cnpj = cnpj;
         this.razaoSocial = razaoSocial;
         this.nomeFantasia = nomeFantasia;
     }
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
@@ -63,5 +65,12 @@ public class Company {
         this.nomeFantasia = nomeFantasia;
     }
 
+    public List<UserCompany> getUserCompanies() {
+        return userCompanies;
+    }
+
+    public void setUserCompanies(List<UserCompany> userCompanies) {
+        this.userCompanies = userCompanies;
+    }
 }
 

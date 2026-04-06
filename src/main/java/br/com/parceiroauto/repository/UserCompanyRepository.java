@@ -1,6 +1,6 @@
 package br.com.parceiroauto.repository;
 
-import br.com.parceiroauto.model.UserCompany;
+import br.com.parceiroauto.entity.UserCompany;
 import jakarta.persistence.EntityManager;
 
 public class UserCompanyRepository {

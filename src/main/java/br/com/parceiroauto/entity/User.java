@@ -1,10 +1,11 @@
-package br.com.parceiroauto.model;
+package br.com.parceiroauto.entity;
 
 
 import java.util.List;
 import jakarta.persistence.*;
 
-@Entity(name = "Users")
+@Entity
+@Table(name = "users")
 public class User {
 
     @Id
@@ -17,11 +18,13 @@ public class User {
     @Column(nullable = false, length = 20 )
     private String password;
 
-    @OneToMany(mappedBy = "Users")
+    @OneToMany(mappedBy = "user")
     private List<UserCompany> userCompanies;
 
-    public UserSystem( long id, String login, String password) {
-        this.id = id;
+    public User() {
+    }
+
+    public User(String login, String password) {
         this.login = login;
         this.password = password;
     }
@@ -48,5 +51,13 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public List<UserCompany> getUserCompanies() {
+        return userCompanies;
+    }
+
+    public void setUserCompanies(List<UserCompany> userCompanies) {
+        this.userCompanies = userCompanies;
     }
 }

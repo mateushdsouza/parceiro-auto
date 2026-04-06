@@ -1,10 +1,9 @@
-package br.com.parceiroauto.model;
+package br.com.parceiroauto.entity;
 
-import java.util.List;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "BankAccount")
+@Table(name = "bank_account")
 
 public class BankAccount {
 
@@ -31,8 +30,10 @@ public class BankAccount {
     @JoinColumn(name = "fk_id_company", nullable = false)
     private Company company;
 
-    public BankAccount(Long id, String banco, String agencia, String numeroConta, String tipoConta, boolean contaPadrao, Company company) {
-        this.id = id;
+    public BankAccount() {
+    }
+
+    public BankAccount(String banco, String agencia, String numeroConta, String tipoConta, boolean contaPadrao, Company company) {
         this.banco = banco;
         this.agencia = agencia;
         this.numeroConta = numeroConta;

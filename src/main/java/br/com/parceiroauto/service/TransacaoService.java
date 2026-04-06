@@ -1,23 +1,23 @@
 package br.com.parceiroauto.service;
 
-import br.com.parceiroauto.model.Empresa;
-import br.com.parceiroauto.model.FormaDeTransacao;
-import br.com.parceiroauto.model.Transacao;
-import br.com.parceiroauto.model.TipoTransacao;
+import br.com.parceiroauto.entity.Empresa;
+import br.com.parceiroauto.entity.TransactionForm;
+import br.com.parceiroauto.entity.Transaction;
+import br.com.parceiroauto.entity.TransactionType;
 
 public class TransacaoService {
 
-    public void registrarEntrada(Empresa empresa, double valor, String descricao, FormaDeTransacao forma){
+    public void registrarEntrada(Empresa empresa, double valor, String descricao, TransactionForm forma){
 
-        TipoTransacao tipo = TipoTransacao.ENTRADA;
-        Transacao transacao = new Transacao(tipo, descricao, valor, forma);
-        empresa.getTransacoes().add(transacao);
+        TransactionType tipo = TransactionType.ENTRADA;
+        Transaction transaction = new Transaction(tipo, descricao, valor, forma);
+        empresa.getTransacoes().add(transaction);
     }
 
-    public void registrarSaida(Empresa empresa, double valor, String descricao, FormaDeTransacao forma){
+    public void registrarSaida(Empresa empresa, double valor, String descricao, TransactionForm forma){
 
-        TipoTransacao tipo = TipoTransacao.SAIDA;
-        Transacao transacao = new Transacao(tipo, descricao, valor, forma);
-        empresa.getTransacoes().add(transacao);
+        TransactionType tipo = TransactionType.SAIDA;
+        Transaction transaction = new Transaction(tipo, descricao, valor, forma);
+        empresa.getTransacoes().add(transaction);
     }
 }

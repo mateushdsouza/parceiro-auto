@@ -1,15 +1,14 @@
-package br.com.parceiroauto.model;
+package br.com.parceiroauto.entity;
 
 
-import java.util.List;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "UserCompanies")
+@Table(name = "user_company")
 public class UserCompany {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "fk_id_company", nullable = false)
@@ -22,18 +21,20 @@ public class UserCompany {
     @Column(nullable = false)
     private String role;
 
-    public UserCompany(long id, Company company, User user, String role) {
-        this.id = id;
+    public UserCompany() {
+    }
+
+    public UserCompany(Company company, User user, String role) {
         this.company = company;
         this.user = user;
         this.role = role;
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
