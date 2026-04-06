@@ -1,7 +1,11 @@
 package br.com.parceiroauto.repository;
 
+import br.com.parceiroauto.entity.Company;
+import br.com.parceiroauto.entity.User;
 import br.com.parceiroauto.entity.UserCompany;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import java.util.List;
 
 public class UserCompanyRepository {
 
@@ -11,10 +15,10 @@ public class UserCompanyRepository {
         this.em = em;
     }
 
-    public void save(UserCompany ue) {
+    public void save(UserCompany userCompany) {
         em.getTransaction().begin();
         try {
-            em.persist(ue);
+            em.persist(userCompany);
             em.getTransaction().commit();
         } catch (Exception e) {
             em.getTransaction().rollback();
@@ -22,14 +26,32 @@ public class UserCompanyRepository {
         }
     }
 
-    public UserCompany buscarPorId(Long id) {
+    public UserCompany findById(Long id) {
         return em.find(UserCompany.class, id);
     }
 
-    public void update(UserCompany ue) {
+    public UserCompany findByUserAndCompany(User user, Company company) {
+        try {
+            return em.createQuery(
+                    "SELECT uc FROM UserCompany uc WHERE uc.user = :user AND uc.company = :company", UserCompany.class)
+                    .setParameter("user", user)
+                    .setParameter("company", company)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    public List<UserCompany> findByUser(User user) {
+        return em.createQuery(
+                        "SELECT uc FROM UserCompany uc WHERE uc.user = :user", UserCompany.class)
+                .setParameter("user", user)
+                .getResultList();
+    }
+    public void update(UserCompany userCompany) {
         em.getTransaction().begin();
         try {
-            em.merge(ue);
+            em.merge(userCompany);
             em.getTransaction().commit();
         } catch (Exception e) {
             em.getTransaction().rollback();
@@ -37,13 +59,13 @@ public class UserCompanyRepository {
         }
     }
 
-    public void delete(UserCompany ue) {
+    public void delete(UserCompany userCompany) {
         em.getTransaction().begin();
         try {
-            UserCompany userCompany = em.find(UserCompany.class, ue.getId());
+            UserCompany managedUserCompany = em.find(UserCompany.class, userCompany.getId());
 
-            if (userCompany != null) {
-                em.remove(userCompany);
+            if (managedUserCompany != null) {
+                em.remove(managedUserCompany);
             }
 
             em.getTransaction().commit();
@@ -52,6 +74,5 @@ public class UserCompanyRepository {
             em.getTransaction().rollback();
             throw e;
         }
-    }
     }
 }
