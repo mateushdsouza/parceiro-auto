@@ -4,5 +4,4 @@ public enum FormaDeTransacao {
     PIX,
     CARTAO,
     DINHEIRO,
-
 }
