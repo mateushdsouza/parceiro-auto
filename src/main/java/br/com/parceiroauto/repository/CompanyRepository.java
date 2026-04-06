@@ -48,5 +48,4 @@ public class CompanyRepository {
             throw e;
         }
     }
-    }
 }
