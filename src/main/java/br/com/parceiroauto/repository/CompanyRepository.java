@@ -1,18 +1,19 @@
 package br.com.parceiroauto.repository;
 
-import br.com.parceiroauto.entity.User;
+import br.com.parceiroauto.entity.Company;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 
-public class UserRepository {
+public class CompanyRepository {
+
     private EntityManager em;
 
-    public UserRepository(EntityManager em) {this.em = em; }
+    public CompanyRepository(EntityManager em) { this.em = em; }
 
-    public void save (User user) {
+    public void save(Company company) {
         em.getTransaction().begin();
         try {
-            em.persist(user);
+            em.persist(company);
             em.getTransaction().commit();
         } catch (Exception e) {
             em.getTransaction().rollback();
@@ -20,25 +21,25 @@ public class UserRepository {
         }
     }
 
-    public User findById(Long id) {
-        return em.find(User.class, id);
+    public Company findById(Long id) {
+        return em.find(Company.class, id);
     }
 
-    public User findByLogin(String login) {
+    public Company findByCnpj(String cnpj) {
         try {
             return em.createQuery(
-                    "SELECT u FROM User u WHERE u.login = :login", User.class)
-                    .setParameter("login", login)
+                    "SELECT c FROM Company c WHERE c.cnpj = :cnpj", Company.class)
+                    .setParameter("cnpj", cnpj)
                     .getSingleResult();
         } catch (NoResultException e) {
             return null;
         }
     }
 
-    public void update(User user) {
+    public void update(Company company) {
         em.getTransaction().begin();
         try {
-            em.merge(user);
+            em.merge(company);
             em.getTransaction().commit();
         } catch (Exception e) {
             em.getTransaction().rollback();
@@ -46,21 +47,20 @@ public class UserRepository {
         }
     }
 
-    public void delete(User user) {
+    public void delete(Company company) {
         em.getTransaction().begin();
         try {
-            User managedUser = em.find(User.class, user.getId());
+            Company managedCompany = em.find(Company.class, company.getId());
 
-            if (managedUser != null) {
-                em.remove(managedUser);
+            if (managedCompany != null) {
+                em.remove(managedCompany);
             }
 
             em.getTransaction().commit();
+
         } catch (Exception e) {
             em.getTransaction().rollback();
             throw e;
         }
     }
 }
-
-

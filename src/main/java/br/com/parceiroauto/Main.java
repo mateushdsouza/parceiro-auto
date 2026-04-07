@@ -1,8 +1,11 @@
 package br.com.parceiroauto;
-import br.com.parceiroauto.view.Visualizacao;
+import br.com.parceiroauto.confg.FlyWayconfg;
+import br.com.parceiroauto.view.View;
 
 public class Main {
     public static void main(String[] args) {
-        Visualizacao.menuPrincipal();
+        View.menuPrincipal();
+        FlyWayconfg.migrate();
+
     }
 }
