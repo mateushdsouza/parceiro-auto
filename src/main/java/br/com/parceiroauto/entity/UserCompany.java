@@ -25,9 +25,9 @@ public class UserCompany {
     public UserCompany() {
     }
 
-    public UserCompany(Company company, User user, UserCompanyRole role) {
-        this.company = company;
+    public UserCompany(User user, Company company, UserCompanyRole role) {
         this.user = user;
+        this.company = company;
         this.role = role;
     }
 
