@@ -1,6 +1,7 @@
 package br.com.parceiroauto.entity;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "bank_account")
@@ -23,6 +24,9 @@ public class BankAccount {
     @Column(nullable = false, length = 20)
     private String tipoConta;
 
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal saldo = BigDecimal.ZERO;
+
     @Column
     private boolean contaPadrao;
 
@@ -38,6 +42,7 @@ public class BankAccount {
         this.agencia = agencia;
         this.numeroConta = numeroConta;
         this.tipoConta = tipoConta;
+        this.saldo = BigDecimal.ZERO;
         this.contaPadrao = contaPadrao;
         this.company = company;
     }
@@ -80,6 +85,14 @@ public class BankAccount {
 
     public void setTipoConta(String tipoConta) {
         this.tipoConta = tipoConta;
+    }
+
+    public BigDecimal getSaldo() {
+        return saldo;
+    }
+
+    public void setSaldo(BigDecimal saldo) {
+        this.saldo = saldo == null ? BigDecimal.ZERO : saldo;
     }
 
     public boolean isContaPadrao() {
