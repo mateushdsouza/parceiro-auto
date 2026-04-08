@@ -3,7 +3,13 @@
 
     <persistence-unit name="parceiroautoPU">
 
+        <class>br.com.parceiroauto.entity.BankAccount</class>
+        <class>br.com.parceiroauto.entity.Company</class>
+        <class>br.com.parceiroauto.entity.RecurrenceRule</class>
+        <class>br.com.parceiroauto.entity.Transaction</class>
+        <class>br.com.parceiroauto.entity.TransactionCategory</class>
         <class>br.com.parceiroauto.entity.User</class>
+        <class>br.com.parceiroauto.entity.UserCompany</class>
 
         <properties>
             <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
