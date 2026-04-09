@@ -40,4 +40,33 @@ public class CompanyService {
     public Company findByCnpj(String cnpj) {
         return companyRepository.findByCnpj(cnpj);
     }
+
+    public Company updateCompany(Company company, String cnpj, String razaoSocial, String nomeFantasia) {
+        if (company == null) {
+            throw new IllegalArgumentException("Empresa nao pode ser nula");
+        }
+
+        if (cnpj == null || cnpj.isBlank()) {
+            throw new IllegalArgumentException("CNPJ nao pode ser vazio");
+        }
+
+        if (razaoSocial == null || razaoSocial.isBlank()) {
+            throw new IllegalArgumentException("Razao Social nao pode ser vazia");
+        }
+
+        if (nomeFantasia == null || nomeFantasia.isBlank()) {
+            throw new IllegalArgumentException("Nome Fantasia nao pode ser vazio");
+        }
+
+        Company existingCompany = companyRepository.findByCnpj(cnpj);
+        if (existingCompany != null && !existingCompany.getId().equals(company.getId())) {
+            throw new IllegalArgumentException("Ja existe uma empresa com esse CNPJ");
+        }
+
+        company.setCnpj(cnpj);
+        company.setRazaoSocial(razaoSocial);
+        company.setNomeFantasia(nomeFantasia);
+        companyRepository.update(company);
+        return company;
+    }
 }
