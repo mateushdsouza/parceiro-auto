@@ -241,10 +241,9 @@ public class View {
             System.out.println();
             System.out.println("=== Empresa: " + company.getNomeFantasia() + " (" + role + ") ===");
             System.out.println("1 - Contas bancarias");
-            System.out.println("2 - Movimentacao");
-            System.out.println("3 - Funcionarios");
-            System.out.println("5 - Relatorios");
-            System.out.println("5 - Voltar");
+            System.out.println("2 - Funcionarios");
+            System.out.println("3 - Relatorios");
+            System.out.println("4 - Voltar");
 
             int opcao = readInt(sc);
             switch (opcao) {
@@ -257,8 +256,6 @@ public class View {
                     break;
 
                 case 2:
-
-                case 3:
                     if (!canManageEmployees(role)) {
                         System.out.println("Voce nao pode acessar funcionarios com seu perfil.");
                         break;
@@ -266,11 +263,15 @@ public class View {
                     System.out.println("Em construcao: menu de funcionarios.");
                     break;
 
-                case 4:
+                case 3:
+                    if (!canAccessReports(role)) {
+                        System.out.println("Voce nao pode acessar relatorios com seu perfil.");
+                        break;
+                    }
                     System.out.println("Em construcao: menu de relatorios.");
                     break;
 
-                case 5:
+                case 4:
                     return;
 
                 default:
@@ -284,7 +285,16 @@ public class View {
     }
 
     private static boolean canAccessBankAccounts(UserCompanyRole role) {
-        return role == UserCompanyRole.OWNER || role == UserCompanyRole.MANAGER;
+        return role == UserCompanyRole.OWNER
+                || role == UserCompanyRole.MANAGER
+                || role == UserCompanyRole.INVESTMENT_MANAGER;
+    }
+
+    private static boolean canAccessReports(UserCompanyRole role) {
+        return role == UserCompanyRole.OWNER
+                || role == UserCompanyRole.MANAGER
+                || role == UserCompanyRole.INVESTMENT_MANAGER
+                || role == UserCompanyRole.VIEWER;
     }
 
     private static int readInt(Scanner sc) {

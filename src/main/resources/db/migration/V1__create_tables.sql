@@ -17,10 +17,13 @@ CREATE TABLE company
 
 CREATE TABLE transaction_category
 (
-    id     BIGSERIAL PRIMARY KEY,
-    name   VARCHAR(50) NOT NULL UNIQUE,
-    tipo   VARCHAR(50) NOT NULL,
-    active BOOLEAN     NOT NULL
+    id            BIGSERIAL PRIMARY KEY,
+    name          VARCHAR(50) NOT NULL,
+    tipo          VARCHAR(50) NOT NULL,
+    active        BOOLEAN     NOT NULL,
+    fk_id_company BIGINT      NOT NULL,
+    CONSTRAINT fk_transaction_category_company FOREIGN KEY (fk_id_company) REFERENCES company (id),
+    CONSTRAINT ux_transaction_category_company_name UNIQUE (fk_id_company, name)
 );
 
 CREATE TABLE user_company
@@ -30,7 +33,8 @@ CREATE TABLE user_company
     fk_id_user    BIGINT       NOT NULL,
     role          VARCHAR(255) NOT NULL,
     CONSTRAINT fk_user_company_company FOREIGN KEY (fk_id_company) REFERENCES company (id),
-    CONSTRAINT fk_user_company_user FOREIGN KEY (fk_id_user) REFERENCES users (id)
+    CONSTRAINT fk_user_company_user FOREIGN KEY (fk_id_user) REFERENCES users (id),
+    CONSTRAINT ux_user_company UNIQUE (fk_id_company, fk_id_user)
 );
 
 CREATE TABLE bank_account
@@ -43,7 +47,8 @@ CREATE TABLE bank_account
     saldo         NUMERIC(19, 2) NOT NULL DEFAULT 0,
     contaPadrao   BOOLEAN,
     fk_id_company BIGINT         NOT NULL,
-    CONSTRAINT fk_bank_account_company FOREIGN KEY (fk_id_company) REFERENCES company (id)
+    CONSTRAINT fk_bank_account_company FOREIGN KEY (fk_id_company) REFERENCES company (id),
+    CONSTRAINT ux_bank_account_company UNIQUE (fk_id_company, banco, agencia, numeroConta)
 );
 
 CREATE TABLE transactions

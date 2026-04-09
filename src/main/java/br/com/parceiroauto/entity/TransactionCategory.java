@@ -10,8 +10,12 @@ public class TransactionCategory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false, length = 50)
     private String name;
+
+    @ManyToOne
+    @JoinColumn(name = "fk_id_company", nullable = false)
+    private Company company;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
@@ -23,8 +27,9 @@ public class TransactionCategory {
     public TransactionCategory() {
     }
 
-    public TransactionCategory(String name, TransactionType tipo, boolean active) {
+    public TransactionCategory(String name, Company company, TransactionType tipo, boolean active) {
         this.name = name;
+        this.company = company;
         this.tipo = tipo;
         this.active = active;
     }
@@ -43,6 +48,14 @@ public class TransactionCategory {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Company getCompany() {
+        return company;
+    }
+
+    public void setCompany(Company company) {
+        this.company = company;
     }
 
     public TransactionType getTipo() {
