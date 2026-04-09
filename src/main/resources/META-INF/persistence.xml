@@ -1,0 +1,27 @@
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
+             version="3.0">
+
+    <persistence-unit name="parceiroautoPU">
+
+        <class>br.com.parceiroauto.entity.BankAccount</class>
+        <class>br.com.parceiroauto.entity.Company</class>
+        <class>br.com.parceiroauto.entity.RecurrenceRule</class>
+        <class>br.com.parceiroauto.entity.Transaction</class>
+        <class>br.com.parceiroauto.entity.TransactionCategory</class>
+        <class>br.com.parceiroauto.entity.User</class>
+        <class>br.com.parceiroauto.entity.UserCompany</class>
+
+        <properties>
+            <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
+            <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/parceiroauto"/>
+            <property name="jakarta.persistence.jdbc.user" value="postgres"/>
+            <property name="jakarta.persistence.jdbc.password" value="1234"/>
+
+            <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>
+            <property name="hibernate.hbm2ddl.auto" value="update"/>
+            <property name="hibernate.show_sql" value="false"/>
+        </properties>
+
+    </persistence-unit>
+
+</persistence>

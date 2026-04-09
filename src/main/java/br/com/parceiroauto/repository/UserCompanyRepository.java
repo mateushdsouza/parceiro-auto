@@ -48,6 +48,19 @@ public class UserCompanyRepository {
                 .setParameter("user", user)
                 .getResultList();
     }
+
+    public void deleteByCompany(Company company) {
+        em.getTransaction().begin();
+        try {
+            em.createQuery("DELETE FROM UserCompany uc WHERE uc.company = :company")
+                    .setParameter("company", company)
+                    .executeUpdate();
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            em.getTransaction().rollback();
+            throw e;
+        }
+    }
     public void update(UserCompany userCompany) {
         em.getTransaction().begin();
         try {
