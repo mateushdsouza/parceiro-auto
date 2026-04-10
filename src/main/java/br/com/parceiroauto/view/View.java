@@ -362,6 +362,56 @@ public class View {
         return role == UserCompanyRole.OWNER || role == UserCompanyRole.MANAGER;
     }
 
+    private static void menuFuncionario(
+            Scanner sc,
+            Company company,
+            UserCompanyRepository userCompanyRepository
+    ) {
+        while (true) {
+            System.out.println();
+            System.out.println("== Funcionarios ==");
+
+            List<UserCompany> links = userCompanyRepository.findByCompany(company);
+
+            if (links.isEmpty()) {
+                System.out.println("Nenhum funcionario cadastrado.");
+            } else {
+                for (int i = 0; i < links.size(); i++) {
+                    UserCompany userCompany = links.get(i);
+                    System.out.println(
+                            (i + 1) + " - " +
+                                    userCompany.getUser().getLogin() +
+                                    " | Role: " + userCompany.getRole()
+                    );
+                }
+            }
+
+            System.out.println((links.size() + 1) + " - Voltar");
+            int opcao = readInt(sc);
+            if (opcao == links.size() + 1) {
+                return;
+            }
+
+            int opcaoCadastrar = links.size() + 1;
+            int opcaoAtualizar = links.size() + 2;
+            int opcaoRemover = links.size() + 3;
+            int opcaoVoltar = links.size() + 4;
+
+            System.out.println();
+            System.out.println(opcaoCadastrar + " - Cadastrar funcionario");
+            System.out.println(opcaoAtualizar + " - Atualizar funcionario");
+            System.out.println(opcaoRemover + " - Remover funcionario");
+            System.out.println(opcaoVoltar + " - Voltar");
+            int opcao = readInt(sc);
+
+
+            if (eopcao == opcaoCadastrar){
+                //cadastrar
+            } else-if (opcao == opcaoAtualizar)
+
+        }
+    }
+
     private static boolean canAccessBankAccounts(UserCompanyRole role) {
         return role == UserCompanyRole.OWNER
                 || role == UserCompanyRole.MANAGER

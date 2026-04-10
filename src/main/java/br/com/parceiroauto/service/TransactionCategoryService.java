@@ -58,27 +58,6 @@ public class TransactionCategoryService {
         return transactionCategoryRepository.findActiveByCompanyAndType(company, tipo);
     }
 
-    public void deactivateCategory(Company company, TransactionCategory category) {
-        if (company == null) {
-            throw new IllegalArgumentException("Empresa nao pode ser nula");
-        }
-
-        if (category == null) {
-            throw new IllegalArgumentException("Categoria nao pode ser nula");
-        }
-
-        if (!category.getCompany().getId().equals(company.getId())) {
-            throw new IllegalArgumentException("A categoria nao pertence a essa empresa");
-        }
-
-        if (!category.isActive()) {
-            throw new IllegalArgumentException("A categoria ja esta desativada");
-        }
-
-        category.setActive(false);
-        transactionCategoryRepository.update(category);
-    }
-
     public TransactionCategory updateCategory(
             Company company,
             TransactionCategory category,

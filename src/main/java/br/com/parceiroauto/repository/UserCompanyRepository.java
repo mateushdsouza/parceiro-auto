@@ -49,6 +49,15 @@ public class UserCompanyRepository {
                 .getResultList();
     }
 
+    public List<UserCompany> findByCompany(Company company) {
+        return em.createQuery(
+                        "SELECT uc FROM UserCompany uc WHERE uc.company = :company",
+                        UserCompany.class
+                )
+                .setParameter("company", company)
+                .getResultList();
+    }
+
     public void deleteByCompany(Company company) {
         em.getTransaction().begin();
         try {
