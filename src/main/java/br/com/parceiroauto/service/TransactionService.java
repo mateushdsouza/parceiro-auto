@@ -69,9 +69,6 @@ public class TransactionService {
         if (tipo == TransactionType.ENTRADA) {
             novoSaldo = saldoAtual.add(valor);
         } else {
-            if (saldoAtual.compareTo(valor) < 0) {
-                throw new IllegalArgumentException("Saldo insuficiente para registrar a saida");
-            }
             novoSaldo = saldoAtual.subtract(valor);
         }
 
@@ -189,9 +186,6 @@ public class TransactionService {
         if (tipo == TransactionType.ENTRADA) {
             bankAccount.setSaldo(saldoAtual.add(valor));
         } else {
-            if (saldoAtual.compareTo(valor) < 0) {
-                throw new IllegalArgumentException("Saldo insuficiente para registrar a saida");
-            }
             bankAccount.setSaldo(saldoAtual.subtract(valor));
         }
 

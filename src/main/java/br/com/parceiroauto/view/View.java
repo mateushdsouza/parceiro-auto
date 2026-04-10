@@ -28,11 +28,13 @@ import jakarta.persistence.EntityManager;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class View {
+    private static final DateTimeFormatter FORMATO_DATA_BR = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     public static void start() {
         EntityManager em = JPAUtil.getEntityManager();
@@ -159,6 +161,7 @@ public class View {
             System.out.println("=== Empresas (usuario: " + user.getLogin() + ") ===");
 
             List<UserCompany> links = userCompanyRepository.findByUser(user);
+            boolean podeGerenciarEmpresas = podeGerenciarEmpresas(links);
             if (links.isEmpty()) {
                 System.out.println("Nenhuma empresa vinculada.");
             } else {
@@ -169,16 +172,19 @@ public class View {
                 }
             }
 
-            int opcaoCadastrar = links.size() + 1;
-            int opcaoAtualizar = links.size() + 2;
-            int opcaoRemover = links.size() + 3;
-            int opcaoLogout = links.size() + 4;
-            int opcaoSair = links.size() + 5;
+            int proximaOpcao = links.size() + 1;
+            int opcaoCadastrar = podeGerenciarEmpresas ? proximaOpcao++ : -1;
+            int opcaoAtualizar = podeGerenciarEmpresas ? proximaOpcao++ : -1;
+            int opcaoRemover = podeGerenciarEmpresas ? proximaOpcao++ : -1;
+            int opcaoLogout = proximaOpcao++;
+            int opcaoSair = proximaOpcao;
 
             System.out.println();
-            System.out.println(opcaoCadastrar + " - Cadastrar empresa");
-            System.out.println(opcaoAtualizar + " - Atualizar empresa");
-            System.out.println(opcaoRemover + " - Remover empresa");
+            if (podeGerenciarEmpresas) {
+                System.out.println(opcaoCadastrar + " - Cadastrar empresa");
+                System.out.println(opcaoAtualizar + " - Atualizar empresa");
+                System.out.println(opcaoRemover + " - Remover empresa");
+            }
             System.out.println(opcaoLogout + " - Logout");
             System.out.println(opcaoSair + " - Sair");
             int opcao = readInt(sc);
@@ -233,6 +239,12 @@ public class View {
                 }
 
                 Company empresa = links.get(idx).getCompany();
+                UserCompanyRole papel = links.get(idx).getRole();
+                if (papel != UserCompanyRole.OWNER) {
+                    System.out.println("Voce nao pode atualizar essa empresa (somente Proprietario).");
+                    continue;
+                }
+
                 String cnpj = askToKeepOrUpdate(sc, "CNPJ", empresa.getCnpj());
                 String razaoSocial = askToKeepOrUpdate(sc, "Razao Social", empresa.getRazaoSocial());
                 String nomeFantasia = askToKeepOrUpdate(sc, "Nome Fantasia", empresa.getNomeFantasia());
@@ -322,7 +334,7 @@ public class View {
                     break;
 
                 case 2:
-                    if (!canAccessBankAccounts(papel)) {
+                    if (!canManageTransactions(papel)) {
                         System.out.println("Voce nao pode registrar movimentacoes com seu perfil.");
                         break;
                     }
@@ -416,6 +428,11 @@ public class View {
 
     private static boolean canAccessBankAccounts(UserCompanyRole papel) {
         return papel == UserCompanyRole.OWNER
+                || papel == UserCompanyRole.INVESTMENT_MANAGER;
+    }
+
+    private static boolean canManageTransactions(UserCompanyRole papel) {
+        return papel == UserCompanyRole.OWNER
                 || papel == UserCompanyRole.MANAGER
                 || papel == UserCompanyRole.INVESTMENT_MANAGER;
     }
@@ -498,6 +515,20 @@ public class View {
                             + " | Funcao: " + userCompany.getRole()
             );
         }
+    }
+
+    private static boolean podeGerenciarEmpresas(List<UserCompany> links) {
+        if (links.isEmpty()) {
+            return true;
+        }
+
+        for (UserCompany link : links) {
+            if (link.getRole() == UserCompanyRole.OWNER) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static void cadastrarFuncionario(
@@ -625,22 +656,37 @@ public class View {
         System.out.println("Funcao do funcionario:");
         if (allowOwner) {
             System.out.println("1 - Proprietario");
+            System.out.println("2 - Gerente");
+            System.out.println("3 - Gerente de Investimentos");
+            System.out.println("4 - Visualizador");
+        } else {
+            System.out.println("1 - Gerente");
+            System.out.println("2 - Gerente de Investimentos");
+            System.out.println("3 - Visualizador");
         }
-        System.out.println("2 - Gerente");
-        System.out.println("3 - Gerente de Investimentos");
-        System.out.println("4 - Visualizador");
         int opcao = readInt(sc);
 
         if (allowOwner && opcao == 1) {
             return UserCompanyRole.OWNER;
         }
-        if (opcao == 2) {
+
+        if (allowOwner && opcao == 2) {
             return UserCompanyRole.MANAGER;
         }
-        if (opcao == 3) {
+        if (allowOwner && opcao == 3) {
             return UserCompanyRole.INVESTMENT_MANAGER;
         }
-        if (opcao == 4) {
+        if (allowOwner && opcao == 4) {
+            return UserCompanyRole.VIEWER;
+        }
+
+        if (!allowOwner && opcao == 1) {
+            return UserCompanyRole.MANAGER;
+        }
+        if (!allowOwner && opcao == 2) {
+            return UserCompanyRole.INVESTMENT_MANAGER;
+        }
+        if (!allowOwner && opcao == 3) {
             return UserCompanyRole.VIEWER;
         }
 
@@ -830,8 +876,9 @@ public class View {
             System.out.println("1 - Categorias");
             System.out.println("2 - Movimentacoes");
             System.out.println("3 - Dados da conta");
-            System.out.println("4 - Definir como conta padrao");
-            System.out.println("5 - Voltar");
+            System.out.println("4 - Relatorio da conta");
+            System.out.println("5 - Definir como conta padrao");
+            System.out.println("6 - Voltar");
 
             int opcao = readInt(sc);
             switch (opcao) {
@@ -859,6 +906,10 @@ public class View {
                     break;
 
                 case 4:
+                    exibirRelatorioConta(sc, bankAccount, transactionService);
+                    break;
+
+                case 5:
                     if (!canViewBankAccountDetails(role)) {
                         System.out.println("Voce nao pode alterar a conta padrao com seu perfil.");
                         break;
@@ -872,13 +923,83 @@ public class View {
                     }
                     break;
 
-                case 5:
+                case 6:
                     return;
 
                 default:
                     System.out.println("Digite uma opcao valida!");
             }
         }
+    }
+
+    private static void exibirRelatorioConta(
+            Scanner sc,
+            BankAccount bankAccount,
+            TransactionService transactionService
+    ) {
+        List<br.com.parceiroauto.entity.Transaction> movimentacoes = transactionService.findByBankAccount(bankAccount);
+        BigDecimal totalEntradas = BigDecimal.ZERO;
+        BigDecimal totalSaidas = BigDecimal.ZERO;
+
+        for (br.com.parceiroauto.entity.Transaction movimentacao : movimentacoes) {
+            if (movimentacao.getTipo() == TransactionType.ENTRADA) {
+                totalEntradas = totalEntradas.add(movimentacao.getValor());
+            } else {
+                totalSaidas = totalSaidas.add(movimentacao.getValor());
+            }
+        }
+
+        System.out.println();
+        System.out.println("=== Relatorio da conta ===");
+        System.out.println("Quantidade de movimentacoes: " + movimentacoes.size());
+        System.out.println("Total de entradas: " + totalEntradas);
+        System.out.println("Total de saidas: " + totalSaidas);
+        System.out.println("Saldo atual: " + bankAccount.getSaldo());
+        System.out.println();
+        System.out.println("1 - Relatorio completo das movimentacoes");
+        System.out.println("2 - Filtrar por entrada");
+        System.out.println("3 - Filtrar por saida");
+        System.out.println("4 - Filtrar por data");
+
+        int opcao = readInt(sc);
+        List<br.com.parceiroauto.entity.Transaction> movimentacoesFiltradas = new ArrayList<>();
+
+        if (opcao == 1) {
+            movimentacoesFiltradas = movimentacoes;
+        } else if (opcao == 2) {
+            for (br.com.parceiroauto.entity.Transaction movimentacao : movimentacoes) {
+                if (movimentacao.getTipo() == TransactionType.ENTRADA) {
+                    movimentacoesFiltradas.add(movimentacao);
+                }
+            }
+        } else if (opcao == 3) {
+            for (br.com.parceiroauto.entity.Transaction movimentacao : movimentacoes) {
+                if (movimentacao.getTipo() == TransactionType.SAIDA) {
+                    movimentacoesFiltradas.add(movimentacao);
+                }
+            }
+        } else if (opcao == 4) {
+            LocalDate dataFiltro = readDate(sc);
+            if (dataFiltro == null) {
+                return;
+            }
+
+            for (br.com.parceiroauto.entity.Transaction movimentacao : movimentacoes) {
+                if (movimentacao.getData().equals(dataFiltro)) {
+                    movimentacoesFiltradas.add(movimentacao);
+                }
+            }
+        } else {
+            System.out.println("Opcao invalida.");
+            return;
+        }
+
+        if (movimentacoesFiltradas.isEmpty()) {
+            System.out.println("Nenhuma movimentacao encontrada para esse filtro.");
+            return;
+        }
+
+        printMovimentacoes(movimentacoesFiltradas);
     }
 
     private static void menuMovimentacoesEmpresa(
@@ -1306,7 +1427,8 @@ public class View {
             br.com.parceiroauto.entity.Transaction transaction = movimentacoes.get(i);
             System.out.println(
                     (i + 1) + " - "
-                            + transaction.getTipo()
+                            + formatDate(transaction.getData())
+                            + " | " + transaction.getTipo()
                             + " | " + transaction.getDescricao()
                             + " | " + transaction.getValor()
                             + " | Conta: " + transaction.getBankAccount().getNumeroConta()
@@ -1616,6 +1738,20 @@ public class View {
                 System.out.println("Digite um valor numerico valido:");
             }
         }
+    }
+
+    private static LocalDate readDate(Scanner sc) {
+        System.out.println("Digite a data no formato DD-MM-AAAA:");
+        try {
+            return LocalDate.parse(sc.nextLine().trim(), FORMATO_DATA_BR);
+        } catch (Exception e) {
+            System.out.println("Data invalida.");
+            return null;
+        }
+    }
+
+    private static String formatDate(LocalDate data) {
+        return data == null ? "" : data.format(FORMATO_DATA_BR);
     }
 
     private enum MenuResult {
