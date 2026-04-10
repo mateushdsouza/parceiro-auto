@@ -61,7 +61,7 @@ public class View {
                     return;
                 }
 
-                MenuResult result = menuEmpresas(
+                MenuResult resultado = menuEmpresas(
                         sc,
                         loggedUser,
                         companyService,
@@ -75,7 +75,7 @@ public class View {
                         transactionService
                 );
 
-                if (result == MenuResult.SAIR) {
+                if (resultado == MenuResult.SAIR) {
                     return;
                 }
             }
@@ -163,8 +163,8 @@ public class View {
                 System.out.println("Nenhuma empresa vinculada.");
             } else {
                 for (int i = 0; i < links.size(); i++) {
-                    Company company = links.get(i).getCompany();
-                    System.out.println((i + 1) + " - " + company.getNomeFantasia() + " (CNPJ: " + company.getCnpj() + ")"
+                    Company empresa = links.get(i).getCompany();
+                    System.out.println((i + 1) + " - " + empresa.getNomeFantasia() + " (CNPJ: " + empresa.getCnpj() + ")"
                             + " [" + links.get(i).getRole() + "]");
                 }
             }
@@ -184,13 +184,13 @@ public class View {
             int opcao = readInt(sc);
 
             if (opcao >= 1 && opcao <= links.size()) {
-                Company company = links.get(opcao - 1).getCompany();
-                UserCompanyRole role = links.get(opcao - 1).getRole();
+                Company empresa = links.get(opcao - 1).getCompany();
+                UserCompanyRole papel = links.get(opcao - 1).getRole();
                 menuEmpresa(
                         sc,
                         user,
-                        company,
-                        role,
+                        empresa,
+                        papel,
                         userCompanyService,
                         userCompanyRepository,
                         userService,
@@ -213,9 +213,9 @@ public class View {
                 String nomeFantasia = sc.nextLine().trim();
 
                 try {
-                    Company company = companyService.createCompany(cnpj, razaoSocial, nomeFantasia);
-                    userCompanyService.linkUserToCompany(user, company, UserCompanyRole.OWNER);
-                    System.out.println("Empresa cadastrada com sucesso! Voce foi vinculado como OWNER.");
+                    Company empresa = companyService.createCompany(cnpj, razaoSocial, nomeFantasia);
+                    userCompanyService.linkUserToCompany(user, empresa, UserCompanyRole.OWNER);
+                    System.out.println("Empresa cadastrada com sucesso! Voce foi vinculado como Proprietario.");
                 } catch (IllegalArgumentException e) {
                     System.out.println(e.getMessage());
                 }
@@ -232,13 +232,13 @@ public class View {
                     continue;
                 }
 
-                Company company = links.get(idx).getCompany();
-                String cnpj = askToKeepOrUpdate(sc, "CNPJ", company.getCnpj());
-                String razaoSocial = askToKeepOrUpdate(sc, "Razao Social", company.getRazaoSocial());
-                String nomeFantasia = askToKeepOrUpdate(sc, "Nome Fantasia", company.getNomeFantasia());
+                Company empresa = links.get(idx).getCompany();
+                String cnpj = askToKeepOrUpdate(sc, "CNPJ", empresa.getCnpj());
+                String razaoSocial = askToKeepOrUpdate(sc, "Razao Social", empresa.getRazaoSocial());
+                String nomeFantasia = askToKeepOrUpdate(sc, "Nome Fantasia", empresa.getNomeFantasia());
 
                 try {
-                    companyService.updateCompany(company, cnpj, razaoSocial, nomeFantasia);
+                    companyService.updateCompany(empresa, cnpj, razaoSocial, nomeFantasia);
                     System.out.println("Empresa atualizada com sucesso.");
                 } catch (IllegalArgumentException e) {
                     System.out.println(e.getMessage());
@@ -256,17 +256,17 @@ public class View {
                     continue;
                 }
 
-                Company company = links.get(idx).getCompany();
-                UserCompanyRole role = links.get(idx).getRole();
+                Company empresa = links.get(idx).getCompany();
+                UserCompanyRole papel = links.get(idx).getRole();
 
-                if (role != UserCompanyRole.OWNER) {
-                    System.out.println("Voce nao pode remover essa empresa (somente OWNER).");
+                if (papel != UserCompanyRole.OWNER) {
+                    System.out.println("Voce nao pode remover essa empresa (somente Proprietario).");
                     continue;
                 }
 
                 try {
-                    userCompanyRepository.deleteByCompany(company);
-                    companyRepository.delete(company);
+                    userCompanyRepository.deleteByCompany(empresa);
+                    companyRepository.delete(empresa);
                     System.out.println("Empresa removida com sucesso.");
                 } catch (Exception e) {
                     System.out.println("Nao foi possivel remover a empresa. Verifique se existem contas/transacoes vinculadas.");
@@ -284,8 +284,8 @@ public class View {
     private static void menuEmpresa(
             Scanner sc,
             User user,
-            Company company,
-            UserCompanyRole role,
+            Company empresa,
+            UserCompanyRole papel,
             UserCompanyService userCompanyService,
             UserCompanyRepository userCompanyRepository,
             UserService userService,
@@ -296,7 +296,7 @@ public class View {
     ) {
         while (true) {
             System.out.println();
-            System.out.println("=== Empresa: " + company.getNomeFantasia() + " (" + role + ") ===");
+            System.out.println("=== Empresa: " + empresa.getNomeFantasia() + " (" + papel + ") ===");
             System.out.println("1 - Contas bancarias");
             System.out.println("2 - Movimentacoes");
             System.out.println("3 - Funcionarios");
@@ -306,14 +306,14 @@ public class View {
             int opcao = readInt(sc);
             switch (opcao) {
                 case 1:
-                    if (!canAccessBankAccounts(role)) {
+                    if (!canAccessBankAccounts(papel)) {
                         System.out.println("Voce nao pode acessar contas bancarias com seu perfil.");
                         break;
                     }
                     menuContasBancarias(
                             sc,
-                            company,
-                            role,
+                            empresa,
+                            papel,
                             bankAccountService,
                             recurrenceRuleService,
                             transactionCategoryService,
@@ -322,13 +322,13 @@ public class View {
                     break;
 
                 case 2:
-                    if (!canAccessBankAccounts(role)) {
+                    if (!canAccessBankAccounts(papel)) {
                         System.out.println("Voce nao pode registrar movimentacoes com seu perfil.");
                         break;
                     }
                     menuMovimentacoesEmpresa(
                             sc,
-                            company,
+                            empresa,
                             bankAccountService,
                             recurrenceRuleService,
                             transactionCategoryService,
@@ -337,15 +337,15 @@ public class View {
                     break;
 
                 case 3:
-                    if (!canManageEmployees(role)) {
+                    if (!canManageEmployees(papel)) {
                         System.out.println("Voce nao pode acessar funcionarios com seu perfil.");
                         break;
                     }
-                    menuFuncionario(sc, user, company, userService, userCompanyService, userCompanyRepository);
+                    menuFuncionario(sc, user, empresa, userService, userCompanyService, userCompanyRepository);
                     break;
 
                 case 4:
-                    if (!canAccessReports(role)) {
+                    if (!canAccessReports(papel)) {
                         System.out.println("Voce nao pode acessar relatorios com seu perfil.");
                         break;
                     }
@@ -361,21 +361,21 @@ public class View {
         }
     }
 
-    private static boolean canManageEmployees(UserCompanyRole role) {
-        return role == UserCompanyRole.OWNER;
+    private static boolean canManageEmployees(UserCompanyRole papel) {
+        return papel == UserCompanyRole.OWNER;
     }
 
     private static void menuFuncionario(
             Scanner sc,
             User loggedUser,
-            Company company,
+            Company empresa,
             UserService userService,
             UserCompanyService userCompanyService,
             UserCompanyRepository userCompanyRepository
     ) {
         while (true) {
             System.out.println();
-            System.out.println("=== Funcionarios da empresa: " + company.getNomeFantasia() + " ===");
+            System.out.println("=== Funcionarios da empresa: " + empresa.getNomeFantasia() + " ===");
             System.out.println("1 - Ver funcionarios");
             System.out.println("2 - Filtrar funcionarios");
             System.out.println("3 - Cadastrar funcionario");
@@ -386,23 +386,23 @@ public class View {
 
             switch (opcao) {
                 case 1:
-                    listarFuncionarios(company, userCompanyRepository);
+                    listarFuncionarios(empresa, userCompanyRepository);
                     break;
 
                 case 2:
-                    filtrarFuncionarios(sc, company, userCompanyRepository);
+                    filtrarFuncionarios(sc, empresa, userCompanyRepository);
                     break;
 
                 case 3:
-                    cadastrarFuncionario(sc, company, userService, userCompanyService);
+                    cadastrarFuncionario(sc, empresa, userService, userCompanyService);
                     break;
 
                 case 4:
-                    atualizarFuncionario(sc, loggedUser, company, userCompanyService, userCompanyRepository);
+                    atualizarFuncionario(sc, loggedUser, empresa, userCompanyService, userCompanyRepository);
                     break;
 
                 case 5:
-                    removerFuncionario(sc, company, userCompanyService, userCompanyRepository);
+                    removerFuncionario(sc, empresa, userCompanyService, userCompanyRepository);
                     break;
 
                 case 6:
@@ -414,17 +414,17 @@ public class View {
         }
     }
 
-    private static boolean canAccessBankAccounts(UserCompanyRole role) {
-        return role == UserCompanyRole.OWNER
-                || role == UserCompanyRole.MANAGER
-                || role == UserCompanyRole.INVESTMENT_MANAGER;
+    private static boolean canAccessBankAccounts(UserCompanyRole papel) {
+        return papel == UserCompanyRole.OWNER
+                || papel == UserCompanyRole.MANAGER
+                || papel == UserCompanyRole.INVESTMENT_MANAGER;
     }
 
-    private static void listarFuncionarios(Company company, UserCompanyRepository userCompanyRepository) {
+    private static void listarFuncionarios(Company empresa, UserCompanyRepository userCompanyRepository) {
         System.out.println();
         System.out.println("== Funcionarios ==");
 
-        List<UserCompany> links = getManagedEmployees(company, userCompanyRepository);
+        List<UserCompany> links = getManagedEmployees(empresa, userCompanyRepository);
         if (links.isEmpty()) {
             System.out.println("Nenhum funcionario cadastrado.");
             return;
@@ -435,10 +435,10 @@ public class View {
 
     private static void filtrarFuncionarios(
             Scanner sc,
-            Company company,
+            Company empresa,
             UserCompanyRepository userCompanyRepository
     ) {
-        List<UserCompany> links = getManagedEmployees(company, userCompanyRepository);
+        List<UserCompany> links = getManagedEmployees(empresa, userCompanyRepository);
         if (links.isEmpty()) {
             System.out.println("Nenhum funcionario cadastrado.");
             return;
@@ -455,9 +455,9 @@ public class View {
             System.out.println("Digite o login para filtrar:");
             String loginFiltro = sc.nextLine().trim().toLowerCase();
 
-            for (UserCompany link : links) {
-                if (link.getUser().getLogin().toLowerCase().contains(loginFiltro)) {
-                    filtrados.add(link);
+            for (UserCompany vinculo : links) {
+                if (vinculo.getUser().getLogin().toLowerCase().contains(loginFiltro)) {
+                    filtrados.add(vinculo);
                 }
             }
         } else if (opcao == 2) {
@@ -469,9 +469,9 @@ public class View {
                 return;
             }
 
-            for (UserCompany link : links) {
-                if (link.getRole() == roleFiltro) {
-                    filtrados.add(link);
+            for (UserCompany vinculo : links) {
+                if (vinculo.getRole() == roleFiltro) {
+                    filtrados.add(vinculo);
                 }
             }
         } else {
@@ -495,14 +495,14 @@ public class View {
             System.out.println(
                     (i + 1) + " - "
                             + userCompany.getUser().getLogin()
-                            + " | Role: " + userCompany.getRole()
+                            + " | Funcao: " + userCompany.getRole()
             );
         }
     }
 
     private static void cadastrarFuncionario(
             Scanner sc,
-            Company company,
+            Company empresa,
             UserService userService,
             UserCompanyService userCompanyService
     ) {
@@ -522,7 +522,7 @@ public class View {
 
         try {
             User user = userService.createUser(login, senha);
-            userCompanyService.linkUserToCompany(user, company, role);
+            userCompanyService.linkUserToCompany(user, empresa, role);
             System.out.println("Funcionario cadastrado com sucesso.");
         } catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
@@ -532,17 +532,17 @@ public class View {
     private static void atualizarFuncionario(
             Scanner sc,
             User loggedUser,
-            Company company,
+            Company empresa,
             UserCompanyService userCompanyService,
             UserCompanyRepository userCompanyRepository
     ) {
-        List<UserCompany> links = getManagedEmployees(company, userCompanyRepository);
+        List<UserCompany> links = getManagedEmployees(empresa, userCompanyRepository);
         if (links.isEmpty()) {
             System.out.println("Nenhum funcionario cadastrado para atualizar.");
             return;
         }
 
-        listarFuncionarios(company, userCompanyRepository);
+        listarFuncionarios(empresa, userCompanyRepository);
         System.out.println("Digite o numero do funcionario para atualizar:");
         int idx = readInt(sc) - 1;
         if (idx < 0 || idx >= links.size()) {
@@ -565,7 +565,7 @@ public class View {
         }
 
         try {
-            userCompanyService.updateRole(selectedLink.getUser(), company, newRole);
+            userCompanyService.updateRole(selectedLink.getUser(), empresa, newRole);
             System.out.println("Funcao atualizada com sucesso.");
         } catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
@@ -574,17 +574,17 @@ public class View {
 
     private static void removerFuncionario(
             Scanner sc,
-            Company company,
+            Company empresa,
             UserCompanyService userCompanyService,
             UserCompanyRepository userCompanyRepository
     ) {
-        List<UserCompany> links = getManagedEmployees(company, userCompanyRepository);
+        List<UserCompany> links = getManagedEmployees(empresa, userCompanyRepository);
         if (links.isEmpty()) {
             System.out.println("Nenhum funcionario cadastrado para remover.");
             return;
         }
 
-        listarFuncionarios(company, userCompanyRepository);
+        listarFuncionarios(empresa, userCompanyRepository);
         System.out.println("Digite o numero do funcionario para remover:");
         int idx = readInt(sc) - 1;
         if (idx < 0 || idx >= links.size()) {
@@ -594,7 +594,7 @@ public class View {
 
         UserCompany selectedLink = links.get(idx);
         try {
-            userCompanyService.removeLink(selectedLink.getUser(), company);
+            userCompanyService.removeLink(selectedLink.getUser(), empresa);
             System.out.println("Funcionario removido da empresa com sucesso.");
         } catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
@@ -602,10 +602,10 @@ public class View {
     }
 
     private static List<UserCompany> getManagedEmployees(
-            Company company,
+            Company empresa,
             UserCompanyRepository userCompanyRepository
     ) {
-        List<UserCompany> links = userCompanyRepository.findByCompany(company);
+        List<UserCompany> links = userCompanyRepository.findByCompany(empresa);
         List<UserCompany> employees = new ArrayList<>();
 
         for (UserCompany link : links) {
@@ -624,11 +624,11 @@ public class View {
     private static UserCompanyRole readUserCompanyRole(Scanner sc, boolean allowOwner) {
         System.out.println("Funcao do funcionario:");
         if (allowOwner) {
-            System.out.println("1 - OWNER");
+            System.out.println("1 - Proprietario");
         }
-        System.out.println("2 - MANAGER");
-        System.out.println("3 - INVESTMENT_MANAGER");
-        System.out.println("4 - VIEWER");
+        System.out.println("2 - Gerente");
+        System.out.println("3 - Gerente de Investimentos");
+        System.out.println("4 - Visualizador");
         int opcao = readInt(sc);
 
         if (allowOwner && opcao == 1) {
@@ -646,14 +646,14 @@ public class View {
 
         throw new IllegalArgumentException(allowOwner
                 ? "Funcao invalida"
-                : "Funcao invalida. OWNER nao pode ser atribuido pelo menu de funcionarios");
+                : "Funcao invalida. Proprietario nao pode ser atribuido pelo menu de funcionarios");
     }
 
-    private static boolean canAccessReports(UserCompanyRole role) {
-        return role == UserCompanyRole.OWNER
-                || role == UserCompanyRole.MANAGER
-                || role == UserCompanyRole.INVESTMENT_MANAGER
-                || role == UserCompanyRole.VIEWER;
+    private static boolean canAccessReports(UserCompanyRole papel) {
+        return papel == UserCompanyRole.OWNER
+                || papel == UserCompanyRole.MANAGER
+                || papel == UserCompanyRole.INVESTMENT_MANAGER
+                || papel == UserCompanyRole.VIEWER;
     }
 
     private static void menuContasBancarias(
@@ -1462,8 +1462,8 @@ public class View {
         System.out.println("Saldo atual: " + bankAccount.getSaldo());
     }
 
-    private static boolean canViewBankAccountDetails(UserCompanyRole role) {
-        return role == UserCompanyRole.OWNER || role == UserCompanyRole.MANAGER;
+    private static boolean canViewBankAccountDetails(UserCompanyRole papel) {
+        return papel == UserCompanyRole.OWNER || papel == UserCompanyRole.MANAGER;
     }
 
     private static String askToKeepOrUpdate(Scanner sc, String label, String currentValue) {
