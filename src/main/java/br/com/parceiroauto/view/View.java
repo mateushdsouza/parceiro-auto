@@ -24,12 +24,14 @@ import br.com.parceiroauto.service.TransactionCategoryService;
 import br.com.parceiroauto.service.TransactionService;
 import br.com.parceiroauto.service.UserCompanyService;
 import br.com.parceiroauto.service.UserService;
+import br.com.parceiroauto.util.ValidadorCNPJ;
 import jakarta.persistence.EntityManager;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Scanner;
 
@@ -53,11 +55,13 @@ public class View {
             CompanyService companyService = new CompanyService(companyRepository);
             UserCompanyService userCompanyService = new UserCompanyService(userCompanyRepository);
             BankAccountService bankAccountService = new BankAccountService(bankAccountRepository);
-            RecurrenceRuleService recurrenceRuleService = new RecurrenceRuleService(recurrenceRuleRepository);
-            TransactionCategoryService transactionCategoryService = new TransactionCategoryService(transactionCategoryRepository);
             TransactionService transactionService = new TransactionService(transactionRepository, bankAccountRepository);
+            RecurrenceRuleService recurrenceRuleService = new RecurrenceRuleService(recurrenceRuleRepository, transactionService);
+            TransactionCategoryService transactionCategoryService = new TransactionCategoryService(transactionCategoryRepository);
 
             while (true) {
+                recurrenceRuleService.processPendingRecurrenceRules();
+
                 User loggedUser = menuLogin(sc, userService);
                 if (loggedUser == null) {
                     return;
@@ -117,11 +121,8 @@ public class View {
                 }
 
                 case 2: {
-                    System.out.println("Digite um login:");
-                    String novoLogin = sc.nextLine().trim();
-
-                    System.out.println("Digite uma senha:");
-                    String novaSenha = sc.nextLine().trim();
+                    String novoLogin = readNewLogin(sc, userService);
+                    String novaSenha = readRequiredText(sc, "Digite uma senha:", "Senha nao pode ser vazia");
 
                     try {
                         userService.createUser(novoLogin, novaSenha);
@@ -209,14 +210,9 @@ public class View {
             }
 
             if (opcao == opcaoCadastrar) {
-                System.out.println("CNPJ (somente numeros):");
-                String cnpj = sc.nextLine().trim();
-
-                System.out.println("Razao Social:");
-                String razaoSocial = sc.nextLine().trim();
-
-                System.out.println("Nome Fantasia:");
-                String nomeFantasia = sc.nextLine().trim();
+                String cnpj = readValidCnpj(sc, companyService, null);
+                String razaoSocial = readRequiredText(sc, "Razao Social:", "Razao Social nao pode ser vazia");
+                String nomeFantasia = readRequiredText(sc, "Nome Fantasia:", "Nome Fantasia nao pode ser vazia");
 
                 try {
                     Company empresa = companyService.createCompany(cnpj, razaoSocial, nomeFantasia);
@@ -341,6 +337,7 @@ public class View {
                     menuMovimentacoesEmpresa(
                             sc,
                             empresa,
+                            papel,
                             bankAccountService,
                             recurrenceRuleService,
                             transactionCategoryService,
@@ -361,7 +358,7 @@ public class View {
                         System.out.println("Voce nao pode acessar relatorios com seu perfil.");
                         break;
                     }
-                    System.out.println("Em construcao: menu de relatorios.");
+                    exibirRelatorioGeralEmpresa(sc, empresa, bankAccountService, transactionService);
                     break;
 
                 case 5:
@@ -537,11 +534,8 @@ public class View {
             UserService userService,
             UserCompanyService userCompanyService
     ) {
-        System.out.println("Login do funcionario:");
-        String login = sc.nextLine().trim();
-
-        System.out.println("Senha do funcionario:");
-        String senha = sc.nextLine().trim();
+        String login = readNewLogin(sc, userService);
+        String senha = readRequiredText(sc, "Senha do funcionario:", "Senha nao pode ser vazia");
 
         UserCompanyRole role;
         try {
@@ -763,26 +757,11 @@ public class View {
             }
 
             if (opcao == opcaoCadastrar) {
-                System.out.println("Banco:");
-                String banco = sc.nextLine().trim();
-
-                System.out.println("Agencia:");
-                String agencia = sc.nextLine().trim();
-
-                System.out.println("Numero da conta:");
-                String numeroConta = sc.nextLine().trim();
-
-                System.out.println("Tipo da conta:");
-                String tipoConta = sc.nextLine().trim();
-
-                System.out.println("Essa e a conta padrao? 1 - Sim / 2 - Nao");
-                int opcaoContaPadrao = readInt(sc);
-                if (opcaoContaPadrao != 1 && opcaoContaPadrao != 2) {
-                    System.out.println("Opcao invalida para conta padrao.");
-                    continue;
-                }
-
-                boolean contaPadrao = opcaoContaPadrao == 1;
+                String banco = readRequiredText(sc, "Banco:", "Banco nao pode ser vazio");
+                String agencia = readValidAgency(sc);
+                String numeroConta = readValidAccountNumber(sc);
+                String tipoConta = readRequiredText(sc, "Tipo da conta:", "Tipo da conta nao pode ser vazio");
+                boolean contaPadrao = readYesNo(sc, "Essa e a conta padrao? 1 - Sim / 2 - Nao");
 
                 try {
                     bankAccountService.createBankAccount(
@@ -890,6 +869,7 @@ public class View {
                     menuMovimentacoesEmpresa(
                             sc,
                             company,
+                            role,
                             bankAccountService,
                             recurrenceRuleService,
                             transactionCategoryService,
@@ -1002,9 +982,97 @@ public class View {
         printMovimentacoes(movimentacoesFiltradas);
     }
 
+    private static void exibirRelatorioGeralEmpresa(
+            Scanner sc,
+            Company company,
+            BankAccountService bankAccountService,
+            TransactionService transactionService
+    ) {
+        List<br.com.parceiroauto.entity.Transaction> movimentacoes = transactionService.findByCompany(company);
+        List<BankAccount> contas = bankAccountService.findByCompany(company);
+        BigDecimal totalEntradas = BigDecimal.ZERO;
+        BigDecimal totalSaidas = BigDecimal.ZERO;
+        BigDecimal saldoGeral = BigDecimal.ZERO;
+
+        for (br.com.parceiroauto.entity.Transaction movimentacao : movimentacoes) {
+            if (movimentacao.getTipo() == TransactionType.ENTRADA) {
+                totalEntradas = totalEntradas.add(movimentacao.getValor());
+            } else {
+                totalSaidas = totalSaidas.add(movimentacao.getValor());
+            }
+        }
+
+        for (BankAccount conta : contas) {
+            BigDecimal saldoConta = conta.getSaldo() == null ? BigDecimal.ZERO : conta.getSaldo();
+            saldoGeral = saldoGeral.add(saldoConta);
+        }
+
+        System.out.println();
+        System.out.println("=== Balanco geral da empresa ===");
+        System.out.println("Quantidade de movimentacoes: " + movimentacoes.size());
+        System.out.println("Total de entradas: " + totalEntradas);
+        System.out.println("Total de saidas: " + totalSaidas);
+        System.out.println("Saldo geral: " + saldoGeral);
+        System.out.println();
+        System.out.println("1 - Filtro por entrada");
+        System.out.println("2 - Filtro por saida");
+        System.out.println("3 - Filtro por banco");
+        System.out.println("4 - Filtro por data");
+
+        int opcao = readInt(sc);
+        List<br.com.parceiroauto.entity.Transaction> movimentacoesFiltradas = new ArrayList<>();
+
+        if (opcao == 1) {
+            for (br.com.parceiroauto.entity.Transaction movimentacao : movimentacoes) {
+                if (movimentacao.getTipo() == TransactionType.ENTRADA) {
+                    movimentacoesFiltradas.add(movimentacao);
+                }
+            }
+        } else if (opcao == 2) {
+            for (br.com.parceiroauto.entity.Transaction movimentacao : movimentacoes) {
+                if (movimentacao.getTipo() == TransactionType.SAIDA) {
+                    movimentacoesFiltradas.add(movimentacao);
+                }
+            }
+        } else if (opcao == 3) {
+            String bancoFiltro = chooseBankName(sc, contas);
+            if (bancoFiltro == null) {
+                return;
+            }
+
+            for (br.com.parceiroauto.entity.Transaction movimentacao : movimentacoes) {
+                if (movimentacao.getBankAccount().getBanco().equalsIgnoreCase(bancoFiltro)) {
+                    movimentacoesFiltradas.add(movimentacao);
+                }
+            }
+        } else if (opcao == 4) {
+            LocalDate dataFiltro = readDate(sc);
+            if (dataFiltro == null) {
+                return;
+            }
+
+            for (br.com.parceiroauto.entity.Transaction movimentacao : movimentacoes) {
+                if (movimentacao.getData().equals(dataFiltro)) {
+                    movimentacoesFiltradas.add(movimentacao);
+                }
+            }
+        } else {
+            System.out.println("Opcao invalida.");
+            return;
+        }
+
+        if (movimentacoesFiltradas.isEmpty()) {
+            System.out.println("Nenhuma movimentacao encontrada para esse filtro.");
+            return;
+        }
+
+        printMovimentacoes(movimentacoesFiltradas);
+    }
+
     private static void menuMovimentacoesEmpresa(
             Scanner sc,
             Company company,
+            UserCompanyRole papel,
             BankAccountService bankAccountService,
             RecurrenceRuleService recurrenceRuleService,
             TransactionCategoryService transactionCategoryService,
@@ -1024,6 +1092,7 @@ public class View {
                     registrarMovimentacaoEmpresa(
                             sc,
                             company,
+                            papel,
                             bankAccountService,
                             recurrenceRuleService,
                             transactionCategoryService,
@@ -1035,6 +1104,7 @@ public class View {
                     atualizarMovimentacaoEmpresa(
                             sc,
                             company,
+                            papel,
                             bankAccountService,
                             recurrenceRuleService,
                             transactionCategoryService,
@@ -1058,6 +1128,7 @@ public class View {
     private static void registrarMovimentacaoEmpresa(
             Scanner sc,
             Company company,
+            UserCompanyRole papel,
             BankAccountService bankAccountService,
             RecurrenceRuleService recurrenceRuleService,
             TransactionCategoryService transactionCategoryService,
@@ -1076,8 +1147,15 @@ public class View {
                 BankAccount conta = contas.get(i);
                 System.out.println((i + 1) + " - " + conta.getBanco() + " | Conta: " + conta.getNumeroConta());
             }
+            System.out.println("0 - Cancelar");
 
-            int idxConta = readInt(sc) - 1;
+            int opcaoConta = readInt(sc);
+            if (opcaoConta == 0) {
+                System.out.println("Cadastro de movimentacao cancelado.");
+                return;
+            }
+
+            int idxConta = opcaoConta - 1;
             if (idxConta < 0 || idxConta >= contas.size()) {
                 System.out.println("Conta bancaria invalida.");
                 return;
@@ -1086,16 +1164,28 @@ public class View {
             bankAccount = contas.get(idxConta);
         } else {
             System.out.println("Conta padrao usada: " + bankAccount.getBanco() + " | Conta: " + bankAccount.getNumeroConta());
-            System.out.println("Deseja usar outra conta? 1 - Sim / 2 - Nao");
+            System.out.println("Deseja usar outra conta? 1 - Sim / 2 - Nao / 0 - Cancelar");
             int opcaoOutraConta = readInt(sc);
+
+            if (opcaoOutraConta == 0) {
+                System.out.println("Cadastro de movimentacao cancelado.");
+                return;
+            }
 
             if (opcaoOutraConta == 1) {
                 for (int i = 0; i < contas.size(); i++) {
                     BankAccount conta = contas.get(i);
                     System.out.println((i + 1) + " - " + conta.getBanco() + " | Conta: " + conta.getNumeroConta());
                 }
+                System.out.println("0 - Cancelar");
 
-                int idxConta = readInt(sc) - 1;
+                int opcaoConta = readInt(sc);
+                if (opcaoConta == 0) {
+                    System.out.println("Cadastro de movimentacao cancelado.");
+                    return;
+                }
+
+                int idxConta = opcaoConta - 1;
                 if (idxConta < 0 || idxConta >= contas.size()) {
                     System.out.println("Conta bancaria invalida.");
                     return;
@@ -1108,29 +1198,30 @@ public class View {
             }
         }
 
-        System.out.println("Tipo da movimentacao: 1 - ENTRADA / 2 - SAIDA");
-        int opcaoTipo = readInt(sc);
-
-        TransactionType tipo;
-        if (opcaoTipo == 1) {
-            tipo = TransactionType.ENTRADA;
-        } else if (opcaoTipo == 2) {
-            tipo = TransactionType.SAIDA;
-        } else {
-            System.out.println("Tipo invalido.");
+        TransactionType tipo = escolherTipoMovimentacao(sc, papel);
+        if (tipo == null) {
             return;
         }
 
-        System.out.println("Descricao:");
-        String descricao = sc.nextLine().trim();
+        String descricao = readRequiredTextOrCancel(sc, "Descricao:", "Descricao nao pode ser vazia");
+        if (descricao == null) {
+            System.out.println("Cadastro de movimentacao cancelado.");
+            return;
+        }
 
-        System.out.println("Valor:");
-        BigDecimal valor = readBigDecimal(sc);
+        BigDecimal valor = readPositiveBigDecimalOrCancel(sc, "Valor:");
+        if (valor == null) {
+            System.out.println("Cadastro de movimentacao cancelado.");
+            return;
+        }
 
-        System.out.println("Forma da movimentacao: 1 - PIX / 2 - CARTAO / 3 - DINHEIRO");
+        System.out.println("Forma da movimentacao: 1 - PIX / 2 - CARTAO / 3 - DINHEIRO / 0 - Cancelar");
         int opcaoForma = readInt(sc);
         TransactionForm forma;
-        if (opcaoForma == 1) {
+        if (opcaoForma == 0) {
+            System.out.println("Cadastro de movimentacao cancelado.");
+            return;
+        } else if (opcaoForma == 1) {
             forma = TransactionForm.PIX;
         } else if (opcaoForma == 2) {
             forma = TransactionForm.CARTAO;
@@ -1141,29 +1232,29 @@ public class View {
             return;
         }
 
-        TransactionCategory categoria = chooseOrCreateCategoryForTransaction(sc, company, tipo, transactionCategoryService);
+        TransactionCategory categoria = escolherCategoriaParaMovimentacao(
+                sc,
+                company,
+                papel,
+                tipo,
+                transactionCategoryService
+        );
         if (categoria == null) {
             return;
         }
 
-        System.out.println("A movimentacao sera recorrente? 1 - Sim / 2 - Nao");
+        System.out.println("A movimentacao sera recorrente? 1 - Sim / 2 - Nao / 0 - Cancelar");
         int opcaoRecorrencia = readInt(sc);
 
         FrequencyType frequencia = null;
-        Integer diaExecucao = null;
-
-        if (opcaoRecorrencia == 1) {
+        if (opcaoRecorrencia == 0) {
+            System.out.println("Cadastro de movimentacao cancelado.");
+            return;
+        } else if (opcaoRecorrencia == 1) {
             try {
                 frequencia = readFrequencyType(sc);
             } catch (IllegalArgumentException e) {
                 System.out.println(e.getMessage());
-                return;
-            }
-
-            System.out.println("Dia de execucao (1 a 31):");
-            diaExecucao = readInt(sc);
-            if (diaExecucao < 1 || diaExecucao > 31) {
-                System.out.println("Dia de execucao invalido.");
                 return;
             }
         } else if (opcaoRecorrencia != 2) {
@@ -1186,7 +1277,6 @@ public class View {
                 recurrenceRuleService.createRecurrenceRule(
                         transaction,
                         frequencia,
-                        diaExecucao,
                         LocalDate.now(),
                         null
                 );
@@ -1232,8 +1322,7 @@ public class View {
 
             switch (opcao) {
                 case 1: {
-                    System.out.println("Nome da categoria:");
-                    String nome = sc.nextLine().trim();
+                    String nome = readRequiredText(sc, "Nome da categoria:", "Nome da categoria nao pode ser vazio");
 
                     System.out.println("Tipo da categoria: 1 - ENTRADA / 2 - SAIDA");
                     int opcaoTipo = readInt(sc);
@@ -1318,6 +1407,7 @@ public class View {
     private static void atualizarMovimentacaoEmpresa(
             Scanner sc,
             Company company,
+            UserCompanyRole papel,
             BankAccountService bankAccountService,
             RecurrenceRuleService recurrenceRuleService,
             TransactionCategoryService transactionCategoryService,
@@ -1343,13 +1433,17 @@ public class View {
             return;
         }
 
-        TransactionType tipo = askToKeepOrUpdateType(sc, transaction.getTipo());
+        TransactionType tipo = escolherTipoMovimentacaoParaAtualizacao(sc, papel, transaction.getTipo());
+        if (tipo == null) {
+            return;
+        }
         String descricao = askToKeepOrUpdate(sc, "Descricao", transaction.getDescricao());
         BigDecimal valor = askToKeepOrUpdateBigDecimal(sc, "Valor", transaction.getValor());
         TransactionForm forma = askToKeepOrUpdateForm(sc, transaction.getForma());
-        TransactionCategory categoria = chooseOrCreateCategoryForTransactionUpdate(
+        TransactionCategory categoria = escolherCategoriaParaAtualizacaoMovimentacao(
                 sc,
                 company,
+                papel,
                 tipo,
                 transaction.getTransactionCategory(),
                 transactionCategoryService
@@ -1359,7 +1453,6 @@ public class View {
         }
 
         FrequencyType frequencia = null;
-        Integer diaExecucao = null;
         System.out.println("A movimentacao sera recorrente? 1 - Sim / 2 - Nao");
         int opcaoRecorrencia = readInt(sc);
         if (opcaoRecorrencia == 1) {
@@ -1369,13 +1462,6 @@ public class View {
                 System.out.println(e.getMessage());
                 return;
             }
-
-            System.out.println("Dia de execucao (1 a 31):");
-            diaExecucao = readInt(sc);
-            if (diaExecucao < 1 || diaExecucao > 31) {
-                System.out.println("Dia de execucao invalido.");
-                return;
-            }
         } else if (opcaoRecorrencia != 2) {
             System.out.println("Opcao invalida para recorrencia.");
             return;
@@ -1383,7 +1469,7 @@ public class View {
 
         try {
             transactionService.updateTransaction(transaction, bankAccount, categoria, tipo, descricao, valor, forma);
-            recurrenceRuleService.replaceRecurrenceRule(transaction, frequencia, diaExecucao, LocalDate.now(), null);
+            recurrenceRuleService.replaceRecurrenceRule(transaction, frequencia, LocalDate.now(), null);
             System.out.println("Movimentacao atualizada com sucesso.");
         } catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
@@ -1412,7 +1498,7 @@ public class View {
 
         br.com.parceiroauto.entity.Transaction transaction = movimentacoes.get(idx);
         try {
-            recurrenceRuleService.replaceRecurrenceRule(transaction, null, null, null, null);
+            recurrenceRuleService.replaceRecurrenceRule(transaction, null, null, null);
             transactionService.deleteTransaction(transaction);
             System.out.println("Movimentacao removida com sucesso.");
         } catch (IllegalArgumentException e) {
@@ -1514,8 +1600,12 @@ public class View {
                 System.out.println((i + 1) + " - " + categorias.get(i).getName());
             }
             System.out.println((categorias.size() + 1) + " - Cadastrar categoria agora");
+            System.out.println("0 - Cancelar");
 
             int opcao = readInt(sc);
+            if (opcao == 0) {
+                return null;
+            }
             if (opcao >= 1 && opcao <= categorias.size()) {
                 return categorias.get(opcao - 1);
             }
@@ -1561,8 +1651,11 @@ public class View {
             TransactionType tipo,
             TransactionCategoryService transactionCategoryService
     ) {
-        System.out.println("Nome da nova categoria:");
-        String nome = sc.nextLine().trim();
+        String nome = readRequiredTextOrCancel(sc, "Nome da nova categoria:", "Nome da categoria nao pode ser vazio");
+        if (nome == null) {
+            System.out.println("Cadastro de categoria cancelado.");
+            return null;
+        }
 
         try {
             TransactionCategory categoria = transactionCategoryService.createCategory(company, nome, tipo);
@@ -1700,7 +1793,7 @@ public class View {
     }
 
     private static FrequencyType readFrequencyType(Scanner sc) {
-        System.out.println("Frequencia: 1 - DAILY / 2 - WEEKLY / 3 - MONTHLY / 4 - YEARLY");
+        System.out.println("Frequencia: 1 - Diaria / 2 - Semanal / 3 - Mensal / 4 - Anual");
         int opcao = readInt(sc);
 
         if (opcao == 1) {
@@ -1740,12 +1833,301 @@ public class View {
         }
     }
 
+    private static BigDecimal readPositiveBigDecimal(Scanner sc, String mensagem) {
+        while (true) {
+            System.out.println(mensagem);
+            BigDecimal valor = readBigDecimal(sc);
+            if (valor.compareTo(BigDecimal.ZERO) > 0) {
+                return valor;
+            }
+            System.out.println("Valor deve ser maior que zero.");
+        }
+    }
+
+    private static BigDecimal readPositiveBigDecimalOrCancel(Scanner sc, String mensagem) {
+        while (true) {
+            System.out.println(mensagem + " (ou 0 para cancelar)");
+            String valorDigitado = sc.nextLine().trim();
+
+            if ("0".equals(valorDigitado)) {
+                return null;
+            }
+
+            try {
+                BigDecimal valor = new BigDecimal(valorDigitado.replace(",", "."));
+                if (valor.compareTo(BigDecimal.ZERO) > 0) {
+                    return valor;
+                }
+                System.out.println("Valor deve ser maior que zero.");
+            } catch (NumberFormatException e) {
+                System.out.println("Digite um valor numerico valido:");
+            }
+        }
+    }
+
+    private static String readRequiredText(Scanner sc, String mensagem, String mensagemErro) {
+        while (true) {
+            System.out.println(mensagem);
+            String valor = sc.nextLine().trim();
+            if (!valor.isBlank()) {
+                return valor;
+            }
+            System.out.println(mensagemErro);
+        }
+    }
+
+    private static String readRequiredTextOrCancel(Scanner sc, String mensagem, String mensagemErro) {
+        while (true) {
+            System.out.println(mensagem + " (ou 0 para cancelar)");
+            String valor = sc.nextLine().trim();
+            if ("0".equals(valor)) {
+                return null;
+            }
+            if (!valor.isBlank()) {
+                return valor;
+            }
+            System.out.println(mensagemErro);
+        }
+    }
+
+    private static String readNewLogin(Scanner sc, UserService userService) {
+        while (true) {
+            System.out.println("Digite um login:");
+            String login = sc.nextLine().trim();
+
+            if (login.isBlank()) {
+                System.out.println("Login nao pode ser vazio");
+                continue;
+            }
+
+            if (userService.findByLogin(login) != null) {
+                System.out.println("Ja existe um usuario com esse login");
+                continue;
+            }
+
+            return login;
+        }
+    }
+
+    private static String readValidCnpj(Scanner sc, CompanyService companyService, Company empresaAtual) {
+        while (true) {
+            System.out.println("CNPJ (somente numeros):");
+            String cnpj = sc.nextLine().trim();
+
+            if (cnpj.isBlank()) {
+                System.out.println("CNPJ nao pode ser vazio");
+                continue;
+            }
+
+            String cnpjNormalizado = cnpj.replaceAll("[^0-9]", "");
+            if (!ValidadorCNPJ.isCNPJ(cnpjNormalizado)) {
+                System.out.println("CNPJ invalido");
+                continue;
+            }
+
+            Company empresaExistente = companyService.findByCnpj(cnpjNormalizado);
+            if (empresaExistente != null && (empresaAtual == null || !empresaExistente.getId().equals(empresaAtual.getId()))) {
+                System.out.println("Ja existe uma empresa com esse CNPJ");
+                continue;
+            }
+
+            return cnpjNormalizado;
+        }
+    }
+
+    private static String readValidAgency(Scanner sc) {
+        while (true) {
+            System.out.println("Agencia:");
+            String agencia = sc.nextLine().trim();
+
+            if (!agencia.matches("\\d{4}")) {
+                System.out.println("Agencia deve ter exatamente 4 digitos");
+                continue;
+            }
+
+            return agencia;
+        }
+    }
+
+    private static String readValidAccountNumber(Scanner sc) {
+        while (true) {
+            System.out.println("Numero da conta:");
+            String numeroConta = sc.nextLine().trim();
+
+            if (!numeroConta.matches("\\d{4,13}")) {
+                System.out.println("Numero da conta deve ter entre 4 e 13 digitos");
+                continue;
+            }
+
+            return numeroConta;
+        }
+    }
+
+    private static boolean readYesNo(Scanner sc, String mensagem) {
+        while (true) {
+            System.out.println(mensagem);
+            int opcao = readInt(sc);
+            if (opcao == 1) {
+                return true;
+            }
+            if (opcao == 2) {
+                return false;
+            }
+            System.out.println("Opcao invalida.");
+        }
+    }
+
+    private static String chooseBankName(Scanner sc, List<BankAccount> contas) {
+        LinkedHashSet<String> bancosUnicos = new LinkedHashSet<>();
+        for (BankAccount conta : contas) {
+            bancosUnicos.add(conta.getBanco());
+        }
+
+        if (bancosUnicos.isEmpty()) {
+            System.out.println("Nenhum banco cadastrado para a empresa.");
+            return null;
+        }
+
+        List<String> bancos = new ArrayList<>(bancosUnicos);
+        System.out.println("Escolha o banco:");
+        for (int i = 0; i < bancos.size(); i++) {
+            System.out.println((i + 1) + " - " + bancos.get(i));
+        }
+
+        int idx = readInt(sc) - 1;
+        if (idx < 0 || idx >= bancos.size()) {
+            System.out.println("Banco invalido.");
+            return null;
+        }
+
+        return bancos.get(idx);
+    }
+
     private static LocalDate readDate(Scanner sc) {
         System.out.println("Digite a data no formato DD-MM-AAAA:");
         try {
             return LocalDate.parse(sc.nextLine().trim(), FORMATO_DATA_BR);
         } catch (Exception e) {
             System.out.println("Data invalida.");
+            return null;
+        }
+    }
+
+    private static TransactionType escolherTipoMovimentacao(Scanner sc, UserCompanyRole papel) {
+        if (papel == UserCompanyRole.INVESTMENT_MANAGER) {
+            System.out.println("Como Gerente de Investimentos, voce so pode registrar SAIDA para a categoria INVESTIMENTO.");
+            return TransactionType.SAIDA;
+        }
+
+        System.out.println("Tipo da movimentacao: 1 - ENTRADA / 2 - SAIDA / 0 - Cancelar");
+        int opcaoTipo = readInt(sc);
+
+        if (opcaoTipo == 0) {
+            System.out.println("Cadastro de movimentacao cancelado.");
+            return null;
+        }
+        if (opcaoTipo == 1) {
+            return TransactionType.ENTRADA;
+        }
+        if (opcaoTipo == 2) {
+            return TransactionType.SAIDA;
+        }
+
+        System.out.println("Tipo invalido.");
+        return null;
+    }
+
+    private static TransactionType escolherTipoMovimentacaoParaAtualizacao(
+            Scanner sc,
+            UserCompanyRole papel,
+            TransactionType tipoAtual
+    ) {
+        if (papel == UserCompanyRole.INVESTMENT_MANAGER) {
+            if (tipoAtual != TransactionType.SAIDA) {
+                System.out.println("Como Gerente de Investimentos, a movimentacao sera ajustada para SAIDA.");
+            } else {
+                System.out.println("Como Gerente de Investimentos, o tipo permanece SAIDA.");
+            }
+            return TransactionType.SAIDA;
+        }
+
+        return askToKeepOrUpdateType(sc, tipoAtual);
+    }
+
+    private static TransactionCategory escolherCategoriaParaMovimentacao(
+            Scanner sc,
+            Company company,
+            UserCompanyRole papel,
+            TransactionType tipo,
+            TransactionCategoryService transactionCategoryService
+    ) {
+        if (papel == UserCompanyRole.INVESTMENT_MANAGER) {
+            return obterOuCriarCategoriaInvestimento(company, transactionCategoryService);
+        }
+
+        return chooseOrCreateCategoryForTransaction(sc, company, tipo, transactionCategoryService);
+    }
+
+    private static TransactionCategory escolherCategoriaParaAtualizacaoMovimentacao(
+            Scanner sc,
+            Company company,
+            UserCompanyRole papel,
+            TransactionType tipo,
+            TransactionCategory categoriaAtual,
+            TransactionCategoryService transactionCategoryService
+    ) {
+        if (papel == UserCompanyRole.INVESTMENT_MANAGER) {
+            return obterOuCriarCategoriaInvestimento(company, transactionCategoryService);
+        }
+
+        return chooseOrCreateCategoryForTransactionUpdate(
+                sc,
+                company,
+                tipo,
+                categoriaAtual,
+                transactionCategoryService
+        );
+    }
+
+    private static TransactionCategory obterOuCriarCategoriaInvestimento(
+            Company company,
+            TransactionCategoryService transactionCategoryService
+    ) {
+        List<TransactionCategory> categorias = transactionCategoryService.findByCompany(company);
+        for (TransactionCategory categoria : categorias) {
+            if (!categoria.getName().equalsIgnoreCase("INVESTIMENTO")) {
+                continue;
+            }
+
+            if (categoria.getTipo() != TransactionType.SAIDA) {
+                System.out.println("A categoria INVESTIMENTO ja existe, mas nao esta configurada como SAIDA.");
+                return null;
+            }
+
+            if (!categoria.isActive()) {
+                transactionCategoryService.updateCategory(
+                        company,
+                        categoria,
+                        categoria.getName(),
+                        TransactionType.SAIDA,
+                        true
+                );
+            }
+
+            System.out.println("Categoria usada: " + categoria.getName());
+            return categoria;
+        }
+
+        try {
+            TransactionCategory categoria = transactionCategoryService.createCategory(
+                    company,
+                    "INVESTIMENTO",
+                    TransactionType.SAIDA
+            );
+            System.out.println("Categoria INVESTIMENTO criada automaticamente.");
+            return categoria;
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
             return null;
         }
     }

@@ -10,6 +10,7 @@ import br.com.parceiroauto.repository.BankAccountRepository;
 import br.com.parceiroauto.repository.TransactionRepository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 public class TransactionService {
@@ -30,6 +31,19 @@ public class TransactionService {
             String descricao,
             BigDecimal valor,
             TransactionForm forma
+    ) {
+        return createTransaction(company, bankAccount, transactionCategory, tipo, descricao, valor, forma, LocalDate.now());
+    }
+
+    public Transaction createTransaction(
+            Company company,
+            BankAccount bankAccount,
+            TransactionCategory transactionCategory,
+            TransactionType tipo,
+            String descricao,
+            BigDecimal valor,
+            TransactionForm forma,
+            LocalDate data
     ) {
         if (company == null) {
             throw new IllegalArgumentException("Empresa nao pode ser nula");
@@ -59,6 +73,10 @@ public class TransactionService {
             throw new IllegalArgumentException("Forma nao pode ser nula");
         }
 
+        if (data == null) {
+            throw new IllegalArgumentException("Data nao pode ser nula");
+        }
+
         if (transactionCategory.getTipo() != tipo) {
             throw new IllegalArgumentException("A categoria escolhida nao corresponde ao tipo da movimentacao");
         }
@@ -81,6 +99,7 @@ public class TransactionService {
                 valor,
                 forma
         );
+        transaction.setData(data);
 
         transactionRepository.save(transaction);
         bankAccount.setSaldo(novoSaldo);

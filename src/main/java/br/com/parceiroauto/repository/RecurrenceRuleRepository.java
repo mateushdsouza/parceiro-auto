@@ -5,6 +5,8 @@ import br.com.parceiroauto.entity.Transaction;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 
+import java.util.List;
+
 public class RecurrenceRuleRepository {
 
     private final EntityManager em;
@@ -34,6 +36,26 @@ public class RecurrenceRuleRepository {
                     .getSingleResult();
         } catch (NoResultException e) {
             return null;
+        }
+    }
+
+    public List<RecurrenceRule> findAll() {
+        em.clear();
+        return em.createQuery(
+                        "SELECT rr FROM RecurrenceRule rr ORDER BY rr.id",
+                        RecurrenceRule.class
+                )
+                .getResultList();
+    }
+
+    public void update(RecurrenceRule recurrenceRule) {
+        em.getTransaction().begin();
+        try {
+            em.merge(recurrenceRule);
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            em.getTransaction().rollback();
+            throw e;
         }
     }
 

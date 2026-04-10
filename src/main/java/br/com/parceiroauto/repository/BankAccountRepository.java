@@ -27,6 +27,7 @@ public class BankAccountRepository {
     }
 
     public List<BankAccount> findByCompany(Company company) {
+        em.clear();
         return em.createQuery(
                         "SELECT ba FROM BankAccount ba WHERE ba.company = :company ORDER BY ba.id",
                         BankAccount.class
@@ -57,6 +58,7 @@ public class BankAccountRepository {
     }
 
     public BankAccount findDefaultByCompany(Company company) {
+        em.clear();
         try {
             return em.createQuery(
                             "SELECT ba FROM BankAccount ba WHERE ba.company = :company AND ba.contaPadrao = true",
