@@ -28,6 +28,7 @@ import jakarta.persistence.EntityManager;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -423,7 +424,7 @@ public class View {
         System.out.println();
         System.out.println("== Funcionarios ==");
 
-        List<UserCompany> links = userCompanyRepository.findByCompany(company);
+        List<UserCompany> links = getManagedEmployees(company, userCompanyRepository);
         if (links.isEmpty()) {
             System.out.println("Nenhum funcionario cadastrado.");
             return;
@@ -437,7 +438,7 @@ public class View {
             Company company,
             UserCompanyRepository userCompanyRepository
     ) {
-        List<UserCompany> links = userCompanyRepository.findByCompany(company);
+        List<UserCompany> links = getManagedEmployees(company, userCompanyRepository);
         if (links.isEmpty()) {
             System.out.println("Nenhum funcionario cadastrado.");
             return;
@@ -448,7 +449,7 @@ public class View {
         System.out.println("2 - Funcao");
         int opcao = readInt(sc);
 
-        List<UserCompany> filtrados = new java.util.ArrayList<>();
+        List<UserCompany> filtrados = new ArrayList<>();
 
         if (opcao == 1) {
             System.out.println("Digite o login para filtrar:");
@@ -513,7 +514,7 @@ public class View {
 
         UserCompanyRole role;
         try {
-            role = readUserCompanyRole(sc);
+            role = readUserCompanyRole(sc, false);
         } catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
             return;
@@ -535,7 +536,7 @@ public class View {
             UserCompanyService userCompanyService,
             UserCompanyRepository userCompanyRepository
     ) {
-        List<UserCompany> links = userCompanyRepository.findByCompany(company);
+        List<UserCompany> links = getManagedEmployees(company, userCompanyRepository);
         if (links.isEmpty()) {
             System.out.println("Nenhum funcionario cadastrado para atualizar.");
             return;
@@ -557,7 +558,7 @@ public class View {
 
         UserCompanyRole newRole;
         try {
-            newRole = readUserCompanyRole(sc);
+            newRole = readUserCompanyRole(sc, false);
         } catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
             return;
@@ -577,7 +578,7 @@ public class View {
             UserCompanyService userCompanyService,
             UserCompanyRepository userCompanyRepository
     ) {
-        List<UserCompany> links = userCompanyRepository.findByCompany(company);
+        List<UserCompany> links = getManagedEmployees(company, userCompanyRepository);
         if (links.isEmpty()) {
             System.out.println("Nenhum funcionario cadastrado para remover.");
             return;
@@ -600,15 +601,37 @@ public class View {
         }
     }
 
+    private static List<UserCompany> getManagedEmployees(
+            Company company,
+            UserCompanyRepository userCompanyRepository
+    ) {
+        List<UserCompany> links = userCompanyRepository.findByCompany(company);
+        List<UserCompany> employees = new ArrayList<>();
+
+        for (UserCompany link : links) {
+            if (link.getRole() != UserCompanyRole.OWNER) {
+                employees.add(link);
+            }
+        }
+
+        return employees;
+    }
+
     private static UserCompanyRole readUserCompanyRole(Scanner sc) {
+        return readUserCompanyRole(sc, true);
+    }
+
+    private static UserCompanyRole readUserCompanyRole(Scanner sc, boolean allowOwner) {
         System.out.println("Funcao do funcionario:");
-        System.out.println("1 - OWNER");
+        if (allowOwner) {
+            System.out.println("1 - OWNER");
+        }
         System.out.println("2 - MANAGER");
         System.out.println("3 - INVESTMENT_MANAGER");
         System.out.println("4 - VIEWER");
         int opcao = readInt(sc);
 
-        if (opcao == 1) {
+        if (allowOwner && opcao == 1) {
             return UserCompanyRole.OWNER;
         }
         if (opcao == 2) {
@@ -621,7 +644,9 @@ public class View {
             return UserCompanyRole.VIEWER;
         }
 
-        throw new IllegalArgumentException("Funcao invalida");
+        throw new IllegalArgumentException(allowOwner
+                ? "Funcao invalida"
+                : "Funcao invalida. OWNER nao pode ser atribuido pelo menu de funcionarios");
     }
 
     private static boolean canAccessReports(UserCompanyRole role) {
