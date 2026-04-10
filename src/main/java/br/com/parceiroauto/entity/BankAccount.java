@@ -15,10 +15,10 @@ public class BankAccount {
     @Column(nullable = false, length = 50)
     private String banco;
 
-    @Column(nullable = false, length = 10)
+    @Column(nullable = false, length = 4)
     private String agencia;
 
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 13)
     private String numeroConta;
 
     @Column(nullable = false, length = 20)

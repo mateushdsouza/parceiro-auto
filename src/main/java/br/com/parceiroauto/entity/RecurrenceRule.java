@@ -21,24 +21,24 @@ public class RecurrenceRule {
     private FrequencyType frequencia;
 
     @Column(nullable = false)
-    private int diaExecucao;
-
-    @Column(nullable = false)
     private LocalDate dataInicio;
 
     @Column
     private LocalDate dataFim;
 
+    @Column(nullable = false)
+    private LocalDate ultimaExecucao;
+
     public RecurrenceRule() {
     }
 
-    public RecurrenceRule(Transaction transaction, FrequencyType frequencia, int diaExecucao,
+    public RecurrenceRule(Transaction transaction, FrequencyType frequencia,
                           LocalDate dataInicio, LocalDate dataFim) {
         setTransaction(transaction);
         setFrequencia(frequencia);
-        setDiaExecucao(diaExecucao);
         setDataInicio(dataInicio);
         setDataFim(dataFim);
+        setUltimaExecucao(dataInicio);
     }
 
     public Long getId() {
@@ -67,17 +67,6 @@ public class RecurrenceRule {
         this.frequencia = frequencia;
     }
 
-    public int getDiaExecucao() {
-        return diaExecucao;
-    }
-
-    public void setDiaExecucao(int diaExecucao) {
-        if (diaExecucao < 1 || diaExecucao > 31) {
-            throw new IllegalArgumentException("diaExecucao deve estar entre 1 e 31");
-        }
-        this.diaExecucao = diaExecucao;
-    }
-
     public LocalDate getDataInicio() {
         return dataInicio;
     }
@@ -101,5 +90,19 @@ public class RecurrenceRule {
             throw new IllegalArgumentException("dataFim nao pode ser menor que dataInicio");
         }
         this.dataFim = dataFim;
+    }
+
+    public LocalDate getUltimaExecucao() {
+        return ultimaExecucao;
+    }
+
+    public void setUltimaExecucao(LocalDate ultimaExecucao) {
+        if (ultimaExecucao == null) {
+            throw new IllegalArgumentException("ultimaExecucao nao pode ser nula");
+        }
+        if (this.dataInicio != null && ultimaExecucao.isBefore(this.dataInicio)) {
+            throw new IllegalArgumentException("ultimaExecucao nao pode ser menor que dataInicio");
+        }
+        this.ultimaExecucao = ultimaExecucao;
     }
 }

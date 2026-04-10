@@ -3,6 +3,7 @@ package br.com.parceiroauto.repository;
 import br.com.parceiroauto.entity.Company;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
+import java.util.List;
 
 public class CompanyRepository {
 
@@ -62,5 +63,10 @@ public class CompanyRepository {
             em.getTransaction().rollback();
             throw e;
         }
+    }
+
+    public List<Company> findAll() {
+        return em.createQuery("SELECT c FROM Company c ORDER BY c.id", Company.class)
+                .getResultList();
     }
 }
