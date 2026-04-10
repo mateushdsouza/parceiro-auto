@@ -7,7 +7,6 @@ import br.com.parceiroauto.repository.BankAccountRepository;
 import java.util.List;
 
 public class BankAccountService {
-
     private final BankAccountRepository bankAccountRepository;
 
     public BankAccountService(BankAccountRepository bankAccountRepository) {
@@ -26,32 +25,26 @@ public class BankAccountService {
             throw new IllegalArgumentException("Empresa nao pode ser nula");
         }
 
-        if (banco == null || banco.isBlank()) {
-            throw new IllegalArgumentException("Banco nao pode ser vazio");
-        }
+        String bancoNormalizado = validarBanco(banco);
+        String agenciaNormalizada = validarAgencia(agencia);
+        String numeroContaNormalizado = validarNumeroConta(numeroConta);
+        String tipoContaNormalizado = validarTipoConta(tipoConta);
 
-        if (agencia == null || agencia.isBlank()) {
-            throw new IllegalArgumentException("Agencia nao pode ser vazia");
-        }
-
-        if (numeroConta == null || numeroConta.isBlank()) {
-            throw new IllegalArgumentException("Numero da conta nao pode ser vazio");
-        }
-
-        if (tipoConta == null || tipoConta.isBlank()) {
-            throw new IllegalArgumentException("Tipo da conta nao pode ser vazio");
-        }
-
-        BankAccount existingAccount = bankAccountRepository.findByCompanyAndData(company, banco, agencia, numeroConta);
+        BankAccount existingAccount = bankAccountRepository.findByCompanyAndData(
+                company,
+                bancoNormalizado,
+                agenciaNormalizada,
+                numeroContaNormalizado
+        );
         if (existingAccount != null) {
             throw new IllegalArgumentException("Ja existe uma conta com esse banco, agencia e numero para essa empresa");
         }
 
         BankAccount bankAccount = new BankAccount(
-                banco.trim(),
-                agencia.trim(),
-                numeroConta.trim(),
-                tipoConta.trim(),
+                bancoNormalizado,
+                agenciaNormalizada,
+                numeroContaNormalizado,
+                tipoContaNormalizado,
                 contaPadrao,
                 company
         );
@@ -131,23 +124,17 @@ public class BankAccountService {
             throw new IllegalArgumentException("Conta bancaria nao pode ser nula");
         }
 
-        if (banco == null || banco.isBlank()) {
-            throw new IllegalArgumentException("Banco nao pode ser vazio");
-        }
+        String bancoNormalizado = validarBanco(banco);
+        String agenciaNormalizada = validarAgencia(agencia);
+        String numeroContaNormalizado = validarNumeroConta(numeroConta);
+        String tipoContaNormalizado = validarTipoConta(tipoConta);
 
-        if (agencia == null || agencia.isBlank()) {
-            throw new IllegalArgumentException("Agencia nao pode ser vazia");
-        }
-
-        if (numeroConta == null || numeroConta.isBlank()) {
-            throw new IllegalArgumentException("Numero da conta nao pode ser vazio");
-        }
-
-        if (tipoConta == null || tipoConta.isBlank()) {
-            throw new IllegalArgumentException("Tipo da conta nao pode ser vazio");
-        }
-
-        BankAccount existingAccount = bankAccountRepository.findByCompanyAndData(company, banco, agencia, numeroConta);
+        BankAccount existingAccount = bankAccountRepository.findByCompanyAndData(
+                company,
+                bancoNormalizado,
+                agenciaNormalizada,
+                numeroContaNormalizado
+        );
         if (existingAccount != null && !existingAccount.getId().equals(bankAccount.getId())) {
             throw new IllegalArgumentException("Ja existe uma conta com esse banco, agencia e numero para essa empresa");
         }
@@ -156,12 +143,54 @@ public class BankAccountService {
             bankAccountRepository.clearDefaultByCompany(company);
         }
 
-        bankAccount.setBanco(banco.trim());
-        bankAccount.setAgencia(agencia.trim());
-        bankAccount.setNumeroConta(numeroConta.trim());
-        bankAccount.setTipoConta(tipoConta.trim());
+        bankAccount.setBanco(bancoNormalizado);
+        bankAccount.setAgencia(agenciaNormalizada);
+        bankAccount.setNumeroConta(numeroContaNormalizado);
+        bankAccount.setTipoConta(tipoContaNormalizado);
         bankAccount.setContaPadrao(contaPadrao);
         bankAccountRepository.update(bankAccount);
         return bankAccount;
+    }
+
+    private String validarBanco(String banco) {
+        if (banco == null || banco.isBlank()) {
+            throw new IllegalArgumentException("Banco nao pode ser vazio");
+        }
+
+        return banco.trim();
+    }
+
+    private String validarTipoConta(String tipoConta) {
+        if (tipoConta == null || tipoConta.isBlank()) {
+            throw new IllegalArgumentException("Tipo da conta nao pode ser vazio");
+        }
+
+        return tipoConta.trim();
+    }
+
+    private String validarAgencia(String agencia) {
+        if (agencia == null || agencia.isBlank()) {
+            throw new IllegalArgumentException("Agencia nao pode ser vazia");
+        }
+
+        String agenciaNormalizada = agencia.trim();
+        if (!agenciaNormalizada.matches("\\d{4}")) {
+            throw new IllegalArgumentException("Agencia deve ter exatamente 4 digitos");
+        }
+
+        return agenciaNormalizada;
+    }
+
+    private String validarNumeroConta(String numeroConta) {
+        if (numeroConta == null || numeroConta.isBlank()) {
+            throw new IllegalArgumentException("Numero da conta nao pode ser vazio");
+        }
+
+        String numeroContaNormalizado = numeroConta.trim();
+        if (!numeroContaNormalizado.matches("\\d{4,13}")) {
+            throw new IllegalArgumentException("Numero da conta deve ter entre 4 e 13 digitos");
+        }
+
+        return numeroContaNormalizado;
     }
 }
