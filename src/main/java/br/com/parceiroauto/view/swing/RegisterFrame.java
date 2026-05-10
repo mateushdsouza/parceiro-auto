@@ -2,6 +2,8 @@ package br.com.parceiroauto.view.swing;
 
 import br.com.parceiroauto.controller.LoginController;
 import br.com.parceiroauto.controller.RegisterController;
+import br.com.parceiroauto.controller.LoginCompanyController;
+import br.com.parceiroauto.controller.RegisterCompanyController;
 
 import javax.swing.*;
 
@@ -9,11 +11,20 @@ public class RegisterFrame extends JFrame {
 
     private final RegisterController controller;
     private final LoginController loginController;
+    private final LoginCompanyController loginCompanyController;
+    private final RegisterCompanyController registerCompanyController;
 
-    public RegisterFrame(RegisterController controller, LoginController loginController) {
+    public RegisterFrame(
+            RegisterController controller,
+            LoginController loginController,
+            LoginCompanyController loginCompanyController,
+            RegisterCompanyController registerCompanyController
+    ) {
 
         this.controller = controller;
         this.loginController = loginController;
+        this.loginCompanyController = loginCompanyController;
+        this.registerCompanyController = registerCompanyController;
 
         // =========================
         // CONFIGURACAO DA JANELA
@@ -211,12 +222,12 @@ public class RegisterFrame extends JFrame {
 
             dispose();
 
-            new LoginFrame(loginController, controller);
+            new LoginFrame(loginController, controller, loginCompanyController, registerCompanyController);
 
         });
 
         btnBack.addActionListener(e -> {
-            new LoginFrame(loginController, controller);
+            new LoginFrame(loginController, controller, loginCompanyController, registerCompanyController);
             dispose();
         });
     }
