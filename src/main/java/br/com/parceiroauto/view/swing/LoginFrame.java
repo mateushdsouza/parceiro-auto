@@ -1,15 +1,18 @@
 package br.com.parceiroauto.view.swing;
 
 import br.com.parceiroauto.controller.LoginController;
+import br.com.parceiroauto.controller.RegisterController;
 import br.com.parceiroauto.entity.User;
 
 import javax.swing.*;
 
 public class LoginFrame extends JFrame {
     private final LoginController controller;
+    private final RegisterController registerController;
 
-    public LoginFrame(LoginController controller) {
+    public LoginFrame(LoginController controller, RegisterController registerController) {
         this.controller = controller;
+        this.registerController = registerController;
 
         setTitle("Login");
         setSize(420, 260);
@@ -103,6 +106,12 @@ public class LoginFrame extends JFrame {
 
         btnSignUp.setBounds(220, 180, 120, 30);
 
+        btnSignUp.addActionListener(e -> {
+
+            new RegisterFrame(registerController, controller);
+
+            dispose();
+        });
 
         add(btnSignUp);
 

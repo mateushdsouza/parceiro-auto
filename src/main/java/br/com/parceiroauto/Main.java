@@ -3,6 +3,7 @@ package br.com.parceiroauto;
 import br.com.parceiroauto.confg.FlyWayconfg;
 import br.com.parceiroauto.confg.JPAUtil;
 import br.com.parceiroauto.controller.LoginController;
+import br.com.parceiroauto.controller.RegisterController;
 import br.com.parceiroauto.repository.UserRepository;
 import br.com.parceiroauto.service.UserService;
 import br.com.parceiroauto.view.swing.LoginFrame;
@@ -20,9 +21,12 @@ public class Main {
         UserService service =
                 new UserService(repository);
 
-        LoginController controller =
+        LoginController loginController =
                 new LoginController(service);
 
-        new LoginFrame(controller);
+        RegisterController registerController =
+                new RegisterController(service);
+
+        new LoginFrame(loginController, registerController);
     }
 }
