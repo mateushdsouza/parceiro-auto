@@ -123,6 +123,13 @@ public class TransactionService {
         return transactionRepository.findByCompany(company);
     }
 
+    public List<Transaction> findLastByCompany(Company company, int limit) {
+        return findByCompany(company)
+                .stream()
+                .limit(limit)
+                .toList();
+    }
+
     public Transaction updateTransaction(
             Transaction transaction,
             BankAccount newBankAccount,

@@ -1,12 +1,22 @@
 package br.com.parceiroauto.view.swing;
 
 import br.com.parceiroauto.entity.Company;
+import br.com.parceiroauto.entity.RecurrenceRule;
+import br.com.parceiroauto.entity.Transaction;
+import br.com.parceiroauto.entity.TransactionCategory;
 import br.com.parceiroauto.entity.User;
 import br.com.parceiroauto.entity.UserCompany;
+import br.com.parceiroauto.service.RecurrenceRuleService;
+import br.com.parceiroauto.service.TransactionService;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.text.NumberFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Locale;
 
 public class MainFrame extends JFrame {
     private static final String HOME_CARD = "home";
@@ -14,25 +24,43 @@ public class MainFrame extends JFrame {
     private static final String TRANSACTIONS_CARD = "transactions";
     private static final String REPORTS_CARD = "reports";
     private static final String EMPLOYEES_CARD = "employees";
+    private static final int SIDE_PANEL_ITEMS_LIMIT = 3;
 
     private final User user;
     private final UserCompany userCompany;
+    private final TransactionService transactionService;
+    private final RecurrenceRuleService recurrenceRuleService;
     private final CardLayout contentLayout;
     private final JPanel contentPanel;
+    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private final NumberFormat moneyFormatter = NumberFormat.getCurrencyInstance(
+            new Locale.Builder().setLanguage("pt").setRegion("BR").build()
+    );
 
     public MainFrame() {
-        this(null, null);
+        this(null, null, null, null);
     }
 
     public MainFrame(User user, UserCompany userCompany) {
+        this(user, userCompany, null, null);
+    }
+
+    public MainFrame(
+            User user,
+            UserCompany userCompany,
+            TransactionService transactionService,
+            RecurrenceRuleService recurrenceRuleService
+    ) {
         this.user = user;
         this.userCompany = userCompany;
+        this.transactionService = transactionService;
+        this.recurrenceRuleService = recurrenceRuleService;
         this.contentLayout = new CardLayout();
         this.contentPanel = new JPanel(contentLayout);
 
         setTitle("Parceiro Auto");
-        setSize(1050, 560);
         setMinimumSize(new Dimension(900, 520));
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
@@ -103,31 +131,157 @@ public class MainFrame extends JFrame {
         chartPanel.add(new ChartPlaceholderPanel());
 
         JPanel sidePanel = new JPanel(new GridLayout(2, 1, 0, 0));
-        sidePanel.setPreferredSize(new Dimension(265, 0));
+        sidePanel.setPreferredSize(new Dimension(360, 0));
         sidePanel.setBackground(Color.BLACK);
-        sidePanel.add(wrapSideArea("proximas\nmovimentacoes\nrecorrentes"));
-        sidePanel.add(wrapSideArea("ultimas 3\nmovimentacoes"));
+        sidePanel.add(createSummarySection("Proximas recorrentes", loadUpcomingRecurrences()));
+        sidePanel.add(createSummarySection("Ultimas movimentacoes", loadLastTransactions()));
 
         wrapper.add(chartPanel, BorderLayout.CENTER);
         wrapper.add(sidePanel, BorderLayout.EAST);
         return wrapper;
     }
 
-    private JPanel wrapSideArea(String text) {
+    private JPanel createSummarySection(String title, DefaultListModel<String> model) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
-        panel.setBorder(new EmptyBorder(30, 8, 10, 8));
+        panel.setBorder(new EmptyBorder(18, 14, 18, 14));
 
-        JTextArea textArea = new JTextArea(text);
-        textArea.setEditable(false);
-        textArea.setFocusable(false);
-        textArea.setOpaque(false);
-        textArea.setFont(new Font("Arial", Font.PLAIN, 28));
-        textArea.setLineWrap(true);
-        textArea.setWrapStyleWord(true);
+        JLabel label = new JLabel(title);
+        label.setFont(new Font("Arial", Font.BOLD, 20));
+        label.setBorder(new EmptyBorder(0, 0, 14, 0));
 
-        panel.add(textArea, BorderLayout.NORTH);
+        JPanel itemsPanel = new JPanel();
+        itemsPanel.setOpaque(false);
+        itemsPanel.setLayout(new GridLayout(Math.max(model.size(), 1), 1, 0, 8));
+
+        for (int i = 0; i < model.size(); i++) {
+            JLabel itemLabel = new JLabel(model.get(i));
+            itemLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+            itemLabel.setVerticalAlignment(SwingConstants.TOP);
+            itemLabel.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(Color.LIGHT_GRAY),
+                    new EmptyBorder(8, 8, 8, 8)
+            ));
+            itemsPanel.add(itemLabel);
+        }
+
+        panel.add(label, BorderLayout.NORTH);
+        panel.add(itemsPanel, BorderLayout.CENTER);
         return panel;
+    }
+
+    private DefaultListModel<String> loadUpcomingRecurrences() {
+        DefaultListModel<String> model = new DefaultListModel<>();
+        Company company = getSelectedCompany();
+
+        if (company == null || recurrenceRuleService == null) {
+            model.addElement("Nenhuma empresa selecionada");
+            return model;
+        }
+
+        List<RecurrenceRule> rules = recurrenceRuleService.findUpcomingByCompany(company, SIDE_PANEL_ITEMS_LIMIT);
+
+        if (rules.isEmpty()) {
+            model.addElement("Sem recorrencias futuras");
+            return model;
+        }
+
+        for (RecurrenceRule rule : rules) {
+            Transaction transaction = rule.getTransaction();
+            LocalDate nextExecution = recurrenceRuleService.calculateNextExecution(rule);
+            model.addElement(formatRecurrenceDetails(rule, transaction, nextExecution));
+        }
+
+        return model;
+    }
+
+    private DefaultListModel<String> loadLastTransactions() {
+        DefaultListModel<String> model = new DefaultListModel<>();
+        Company company = getSelectedCompany();
+
+        if (company == null || transactionService == null) {
+            model.addElement("Nenhuma empresa selecionada");
+            return model;
+        }
+
+        List<Transaction> transactions = transactionService.findLastByCompany(company, SIDE_PANEL_ITEMS_LIMIT);
+
+        if (transactions.isEmpty()) {
+            model.addElement("Sem movimentacoes cadastradas");
+            return model;
+        }
+
+        for (Transaction transaction : transactions) {
+            model.addElement(formatTransactionDetails(transaction.getData(), transaction));
+        }
+
+        return model;
+    }
+
+    private Company getSelectedCompany() {
+        if (userCompany == null) {
+            return null;
+        }
+
+        return userCompany.getCompany();
+    }
+
+    private String formatDate(LocalDate date) {
+        if (date == null) {
+            return "sem data";
+        }
+
+        return date.format(dateFormatter);
+    }
+
+    private String formatRecurrenceDetails(
+            RecurrenceRule rule,
+            Transaction transaction,
+            LocalDate nextExecution
+    ) {
+        return "<html>"
+                + "<b>Proxima:</b> " + escapeHtml(formatDate(nextExecution)) + "<br>"
+                + "<b>Frequencia:</b> " + escapeHtml(String.valueOf(rule.getFrequencia())) + "<br>"
+                + formatTransactionRows(transaction)
+                + "</html>";
+    }
+
+    private String formatTransactionDetails(LocalDate date, Transaction transaction) {
+        return "<html>"
+                + "<b>Data:</b> " + escapeHtml(formatDate(date)) + "<br>"
+                + formatTransactionRows(transaction)
+                + "</html>";
+    }
+
+    private String formatTransactionRows(Transaction transaction) {
+        if (transaction == null) {
+            return "movimentacao nao informada";
+        }
+
+        String value = transaction.getValor() == null ? "sem valor" : moneyFormatter.format(transaction.getValor());
+        TransactionCategory category = transaction.getTransactionCategory();
+        String categoryName = category == null ? "sem categoria" : category.getName();
+        String bankAccount = transaction.getBankAccount() == null
+                ? "sem conta"
+                : transaction.getBankAccount().getBanco() + " - " + transaction.getBankAccount().getNumeroConta();
+
+        return "<b>Descricao:</b> " + escapeHtml(transaction.getDescricao()) + "<br>"
+                + "<b>Tipo:</b> " + escapeHtml(String.valueOf(transaction.getTipo())) + "<br>"
+                + "<b>Forma:</b> " + escapeHtml(String.valueOf(transaction.getForma())) + "<br>"
+                + "<b>Categoria:</b> " + escapeHtml(categoryName) + "<br>"
+                + "<b>Conta:</b> " + escapeHtml(bankAccount) + "<br>"
+                + "<b>Valor:</b> " + escapeHtml(value);
+    }
+
+    private String escapeHtml(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return value
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;");
     }
 
     private JPanel createPlaceholderPanel(String title) {
@@ -173,7 +327,7 @@ public class MainFrame extends JFrame {
 
     private static class ChartPlaceholderPanel extends JPanel {
         private ChartPlaceholderPanel() {
-            setPreferredSize(new Dimension(280, 280));
+            setPreferredSize(new Dimension(240, 240));
             setOpaque(false);
         }
 
@@ -184,8 +338,8 @@ public class MainFrame extends JFrame {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setColor(Color.BLACK);
             g2.setStroke(new BasicStroke(12));
-            g2.drawOval(25, 25, 230, 230);
-            g2.setFont(new Font("Arial", Font.PLAIN, 28));
+            g2.drawOval(25, 25, 190, 190);
+            g2.setFont(new Font("Arial", Font.PLAIN, 24));
             FontMetrics metrics = g2.getFontMetrics();
             String text = "JFreeChart";
             int x = (getWidth() - metrics.stringWidth(text)) / 2;

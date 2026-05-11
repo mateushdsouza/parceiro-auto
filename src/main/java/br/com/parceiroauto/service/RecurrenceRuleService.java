@@ -1,10 +1,12 @@
 package br.com.parceiroauto.service;
 
 import br.com.parceiroauto.entity.FrequencyType;
+import br.com.parceiroauto.entity.Company;
 import br.com.parceiroauto.entity.RecurrenceRule;
 import br.com.parceiroauto.entity.Transaction;
 import br.com.parceiroauto.repository.RecurrenceRuleRepository;
 
+import java.util.Comparator;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
@@ -74,6 +76,23 @@ public class RecurrenceRuleService {
         }
     }
 
+    public List<RecurrenceRule> findUpcomingByCompany(Company company, int limit) {
+        if (company == null) {
+            throw new IllegalArgumentException("Empresa nao pode ser nula");
+        }
+
+        return recurrenceRuleRepository.findByCompany(company)
+                .stream()
+                .filter(this::hasNextExecution)
+                .sorted(Comparator.comparing(this::calcularProximaExecucao))
+                .limit(limit)
+                .toList();
+    }
+
+    public LocalDate calculateNextExecution(RecurrenceRule regra) {
+        return calcularProximaExecucao(regra);
+    }
+
     private void processPendingRecurrenceRule(RecurrenceRule regra, LocalDate hoje) {
         if (regra == null) {
             return;
@@ -120,6 +139,12 @@ public class RecurrenceRuleService {
                     1
             ), regra.getDataInicio().getDayOfMonth());
         };
+    }
+
+    private boolean hasNextExecution(RecurrenceRule regra) {
+        LocalDate proximaExecucao = calcularProximaExecucao(regra);
+        LocalDate dataFim = regra.getDataFim();
+        return proximaExecucao != null && (dataFim == null || !proximaExecucao.isAfter(dataFim));
     }
 
     private LocalDate ajustarDiaDoMes(LocalDate dataBase, int diaExecucao) {

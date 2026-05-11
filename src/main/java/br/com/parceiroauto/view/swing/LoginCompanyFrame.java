@@ -4,6 +4,8 @@ import br.com.parceiroauto.controller.LoginCompanyController;
 import br.com.parceiroauto.controller.RegisterCompanyController;
 import br.com.parceiroauto.entity.User;
 import br.com.parceiroauto.entity.UserCompany;
+import br.com.parceiroauto.service.RecurrenceRuleService;
+import br.com.parceiroauto.service.TransactionService;
 
 import javax.swing.*;
 import java.util.List;
@@ -12,15 +14,29 @@ public class LoginCompanyFrame extends JFrame {
     private final User user;
     private final LoginCompanyController controller;
     private final RegisterCompanyController registerCompanyController;
+    private final TransactionService transactionService;
+    private final RecurrenceRuleService recurrenceRuleService;
 
     public LoginCompanyFrame(
             User user,
             LoginCompanyController controller,
             RegisterCompanyController registerCompanyController
     ) {
+        this(user, controller, registerCompanyController, null, null);
+    }
+
+    public LoginCompanyFrame(
+            User user,
+            LoginCompanyController controller,
+            RegisterCompanyController registerCompanyController,
+            TransactionService transactionService,
+            RecurrenceRuleService recurrenceRuleService
+    ) {
         this.user = user;
         this.controller = controller;
         this.registerCompanyController = registerCompanyController;
+        this.transactionService = transactionService;
+        this.recurrenceRuleService = recurrenceRuleService;
 
         setTitle("Selecionar Empresa");
         setSize(420, 260);
@@ -54,7 +70,7 @@ public class LoginCompanyFrame extends JFrame {
                 return;
             }
 
-            new MainFrame(user, selecionado);
+            new MainFrame(user, selecionado, transactionService, recurrenceRuleService);
             dispose();
         });
 
@@ -67,7 +83,13 @@ public class LoginCompanyFrame extends JFrame {
 
         btnCadastrar.addActionListener(e -> {
 
-            new RegisterCompanyFrame(user, registerCompanyController, controller);
+            new RegisterCompanyFrame(
+                    user,
+                    registerCompanyController,
+                    controller,
+                    transactionService,
+                    recurrenceRuleService
+            );
 
             dispose();
         });

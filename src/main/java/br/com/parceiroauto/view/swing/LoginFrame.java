@@ -5,6 +5,8 @@ import br.com.parceiroauto.controller.LoginController;
 import br.com.parceiroauto.controller.RegisterCompanyController;
 import br.com.parceiroauto.controller.RegisterController;
 import br.com.parceiroauto.entity.User;
+import br.com.parceiroauto.service.RecurrenceRuleService;
+import br.com.parceiroauto.service.TransactionService;
 
 import javax.swing.*;
 
@@ -13,6 +15,8 @@ public class LoginFrame extends JFrame {
     private final RegisterController registerController;
     private final LoginCompanyController loginCompanyController;
     private final RegisterCompanyController registerCompanyController;
+    private final TransactionService transactionService;
+    private final RecurrenceRuleService recurrenceRuleService;
 
     public LoginFrame(
             LoginController controller,
@@ -20,10 +24,23 @@ public class LoginFrame extends JFrame {
             LoginCompanyController loginCompanyController,
             RegisterCompanyController registerCompanyController
     ) {
+        this(controller, registerController, loginCompanyController, registerCompanyController, null, null);
+    }
+
+    public LoginFrame(
+            LoginController controller,
+            RegisterController registerController,
+            LoginCompanyController loginCompanyController,
+            RegisterCompanyController registerCompanyController,
+            TransactionService transactionService,
+            RecurrenceRuleService recurrenceRuleService
+    ) {
         this.controller = controller;
         this.registerController = registerController;
         this.loginCompanyController = loginCompanyController;
         this.registerCompanyController = registerCompanyController;
+        this.transactionService = transactionService;
+        this.recurrenceRuleService = recurrenceRuleService;
 
         setTitle("Login");
         setSize(420, 260);
@@ -100,7 +117,13 @@ public class LoginFrame extends JFrame {
                         "Bem-vindo " + user.getLogin()
                 );
 
-                new LoginCompanyFrame(user, loginCompanyController, registerCompanyController);
+                new LoginCompanyFrame(
+                        user,
+                        loginCompanyController,
+                        registerCompanyController,
+                        transactionService,
+                        recurrenceRuleService
+                );
 
                 dispose();
             } else {
@@ -119,7 +142,14 @@ public class LoginFrame extends JFrame {
 
         btnCadastrar.addActionListener(e -> {
 
-            new RegisterFrame(registerController, controller, loginCompanyController, registerCompanyController);
+            new RegisterFrame(
+                    registerController,
+                    controller,
+                    loginCompanyController,
+                    registerCompanyController,
+                    transactionService,
+                    recurrenceRuleService
+            );
 
             dispose();
         });

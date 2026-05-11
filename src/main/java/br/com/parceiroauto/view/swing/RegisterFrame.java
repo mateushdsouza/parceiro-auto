@@ -4,6 +4,8 @@ import br.com.parceiroauto.controller.LoginController;
 import br.com.parceiroauto.controller.RegisterController;
 import br.com.parceiroauto.controller.LoginCompanyController;
 import br.com.parceiroauto.controller.RegisterCompanyController;
+import br.com.parceiroauto.service.RecurrenceRuleService;
+import br.com.parceiroauto.service.TransactionService;
 
 import javax.swing.*;
 
@@ -13,6 +15,8 @@ public class RegisterFrame extends JFrame {
     private final LoginController loginController;
     private final LoginCompanyController loginCompanyController;
     private final RegisterCompanyController registerCompanyController;
+    private final TransactionService transactionService;
+    private final RecurrenceRuleService recurrenceRuleService;
 
     public RegisterFrame(
             RegisterController controller,
@@ -20,11 +24,24 @@ public class RegisterFrame extends JFrame {
             LoginCompanyController loginCompanyController,
             RegisterCompanyController registerCompanyController
     ) {
+        this(controller, loginController, loginCompanyController, registerCompanyController, null, null);
+    }
+
+    public RegisterFrame(
+            RegisterController controller,
+            LoginController loginController,
+            LoginCompanyController loginCompanyController,
+            RegisterCompanyController registerCompanyController,
+            TransactionService transactionService,
+            RecurrenceRuleService recurrenceRuleService
+    ) {
 
         this.controller = controller;
         this.loginController = loginController;
         this.loginCompanyController = loginCompanyController;
         this.registerCompanyController = registerCompanyController;
+        this.transactionService = transactionService;
+        this.recurrenceRuleService = recurrenceRuleService;
 
         // =========================
         // CONFIGURACAO DA JANELA
@@ -222,12 +239,26 @@ public class RegisterFrame extends JFrame {
 
             dispose();
 
-            new LoginFrame(loginController, controller, loginCompanyController, registerCompanyController);
+            new LoginFrame(
+                    loginController,
+                    controller,
+                    loginCompanyController,
+                    registerCompanyController,
+                    transactionService,
+                    recurrenceRuleService
+            );
 
         });
 
         btnBack.addActionListener(e -> {
-            new LoginFrame(loginController, controller, loginCompanyController, registerCompanyController);
+            new LoginFrame(
+                    loginController,
+                    controller,
+                    loginCompanyController,
+                    registerCompanyController,
+                    transactionService,
+                    recurrenceRuleService
+            );
             dispose();
         });
     }
