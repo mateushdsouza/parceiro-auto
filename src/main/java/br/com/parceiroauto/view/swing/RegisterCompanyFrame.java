@@ -3,6 +3,8 @@ package br.com.parceiroauto.view.swing;
 import br.com.parceiroauto.controller.LoginCompanyController;
 import br.com.parceiroauto.controller.RegisterCompanyController;
 import br.com.parceiroauto.entity.User;
+import br.com.parceiroauto.service.RecurrenceRuleService;
+import br.com.parceiroauto.service.TransactionService;
 
 import javax.swing.*;
 
@@ -10,15 +12,29 @@ public class RegisterCompanyFrame extends JFrame {
     private final User user;
     private final RegisterCompanyController registerCompanyController;
     private final LoginCompanyController loginCompanyController;
+    private final TransactionService transactionService;
+    private final RecurrenceRuleService recurrenceRuleService;
 
     public RegisterCompanyFrame(
             User user,
             RegisterCompanyController registerCompanyController,
             LoginCompanyController loginCompanyController
     ) {
+        this(user, registerCompanyController, loginCompanyController, null, null);
+    }
+
+    public RegisterCompanyFrame(
+            User user,
+            RegisterCompanyController registerCompanyController,
+            LoginCompanyController loginCompanyController,
+            TransactionService transactionService,
+            RecurrenceRuleService recurrenceRuleService
+    ) {
         this.user = user;
         this.registerCompanyController = registerCompanyController;
         this.loginCompanyController = loginCompanyController;
+        this.transactionService = transactionService;
+        this.recurrenceRuleService = recurrenceRuleService;
 
         setTitle("Cadastro de Empresa");
         setSize(420, 390);
@@ -69,12 +85,24 @@ public class RegisterCompanyFrame extends JFrame {
             }
 
             JOptionPane.showMessageDialog(this, "Empresa cadastrada com sucesso");
-            new LoginCompanyFrame(user, loginCompanyController, registerCompanyController);
+            new LoginCompanyFrame(
+                    user,
+                    loginCompanyController,
+                    registerCompanyController,
+                    transactionService,
+                    recurrenceRuleService
+            );
             dispose();
         });
 
         btnVoltar.addActionListener(e -> {
-            new LoginCompanyFrame(user, loginCompanyController, registerCompanyController);
+            new LoginCompanyFrame(
+                    user,
+                    loginCompanyController,
+                    registerCompanyController,
+                    transactionService,
+                    recurrenceRuleService
+            );
             dispose();
         });
 

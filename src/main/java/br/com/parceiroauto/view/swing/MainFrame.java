@@ -1,14 +1,351 @@
 package br.com.parceiroauto.view.swing;
 
+import br.com.parceiroauto.entity.Company;
+import br.com.parceiroauto.entity.RecurrenceRule;
+import br.com.parceiroauto.entity.Transaction;
+import br.com.parceiroauto.entity.TransactionCategory;
+import br.com.parceiroauto.entity.User;
+import br.com.parceiroauto.entity.UserCompany;
+import br.com.parceiroauto.service.RecurrenceRuleService;
+import br.com.parceiroauto.service.TransactionService;
+
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
+import java.text.NumberFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Locale;
 
 public class MainFrame extends JFrame {
+    private static final String HOME_CARD = "home";
+    private static final String BANK_ACCOUNT_CARD = "bankAccount";
+    private static final String TRANSACTIONS_CARD = "transactions";
+    private static final String REPORTS_CARD = "reports";
+    private static final String EMPLOYEES_CARD = "employees";
+    private static final int SIDE_PANEL_ITEMS_LIMIT = 3;
+
+    private final User user;
+    private final UserCompany userCompany;
+    private final TransactionService transactionService;
+    private final RecurrenceRuleService recurrenceRuleService;
+    private final CardLayout contentLayout;
+    private final JPanel contentPanel;
+    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private final NumberFormat moneyFormatter = NumberFormat.getCurrencyInstance(
+            new Locale.Builder().setLanguage("pt").setRegion("BR").build()
+    );
 
     public MainFrame() {
-        setSize(900, 600);
-        JLabel lblWelcome = new JLabel("Seja bem vindo");
+        this(null, null, null, null);
+    }
 
-        add(lblWelcome);
+    public MainFrame(User user, UserCompany userCompany) {
+        this(user, userCompany, null, null);
+    }
+
+    public MainFrame(
+            User user,
+            UserCompany userCompany,
+            TransactionService transactionService,
+            RecurrenceRuleService recurrenceRuleService
+    ) {
+        this.user = user;
+        this.userCompany = userCompany;
+        this.transactionService = transactionService;
+        this.recurrenceRuleService = recurrenceRuleService;
+        this.contentLayout = new CardLayout();
+        this.contentPanel = new JPanel(contentLayout);
+
+        setTitle("Parceiro Auto");
+        setMinimumSize(new Dimension(900, 520));
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout(10, 10));
+        getContentPane().setBackground(Color.BLACK);
+
+        add(createTopMenu(), BorderLayout.NORTH);
+        add(createContentPanel(), BorderLayout.CENTER);
+        add(createUserInfoPanel(), BorderLayout.SOUTH);
+
+        showContent(HOME_CARD);
         setVisible(true);
+    }
+
+    private JPanel createTopMenu() {
+        JPanel topMenu = new JPanel(new BorderLayout(12, 0));
+        topMenu.setBackground(Color.BLACK);
+        topMenu.setBorder(new EmptyBorder(18, 24, 0, 18));
+
+        JLabel userOptions = new JLabel("opcoes do usuario");
+        userOptions.setOpaque(true);
+        userOptions.setBackground(Color.WHITE);
+        userOptions.setBorder(new EmptyBorder(0, 12, 0, 12));
+        userOptions.setFont(new Font("Arial", Font.PLAIN, 26));
+        topMenu.add(userOptions, BorderLayout.WEST);
+
+        JPanel buttonsPanel = new JPanel(new GridLayout(1, 5, 4, 0));
+        buttonsPanel.setBackground(Color.BLACK);
+        buttonsPanel.add(createMenuButton("home", HOME_CARD));
+        buttonsPanel.add(createMenuButton("<html>conta<br>bancaria</html>", BANK_ACCOUNT_CARD));
+        buttonsPanel.add(createMenuButton("movimentacoes", TRANSACTIONS_CARD));
+        buttonsPanel.add(createMenuButton("relatorios", REPORTS_CARD));
+        buttonsPanel.add(createMenuButton("funcionarios", EMPLOYEES_CARD));
+
+        topMenu.add(buttonsPanel, BorderLayout.CENTER);
+        return topMenu;
+    }
+
+    private JButton createMenuButton(String text, String cardName) {
+        JButton button = new JButton(text);
+        button.setFocusPainted(false);
+        button.setBackground(Color.WHITE);
+        button.setForeground(Color.BLACK);
+        button.setFont(new Font("Arial", Font.PLAIN, 18));
+        button.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+        button.addActionListener(e -> showContent(cardName));
+        return button;
+    }
+
+    private JPanel createContentPanel() {
+        contentPanel.setBackground(Color.BLACK);
+        contentPanel.setBorder(new EmptyBorder(0, 24, 0, 18));
+
+        contentPanel.add(createHomePanel(), HOME_CARD);
+        contentPanel.add(createPlaceholderPanel("Conta bancaria"), BANK_ACCOUNT_CARD);
+        contentPanel.add(createPlaceholderPanel("Movimentacoes"), TRANSACTIONS_CARD);
+        contentPanel.add(createPlaceholderPanel("Relatorios"), REPORTS_CARD);
+        contentPanel.add(createPlaceholderPanel("Funcionarios"), EMPLOYEES_CARD);
+
+        return contentPanel;
+    }
+
+    private JPanel createHomePanel() {
+        JPanel wrapper = new JPanel(new BorderLayout(10, 0));
+        wrapper.setBackground(Color.BLACK);
+
+        JPanel chartPanel = new JPanel(new GridBagLayout());
+        chartPanel.setBackground(Color.WHITE);
+        chartPanel.add(new ChartPlaceholderPanel());
+
+        JPanel sidePanel = new JPanel(new GridLayout(2, 1, 0, 0));
+        sidePanel.setPreferredSize(new Dimension(360, 0));
+        sidePanel.setBackground(Color.BLACK);
+        sidePanel.add(createSummarySection("Proximas recorrentes", loadUpcomingRecurrences()));
+        sidePanel.add(createSummarySection("Ultimas movimentacoes", loadLastTransactions()));
+
+        wrapper.add(chartPanel, BorderLayout.CENTER);
+        wrapper.add(sidePanel, BorderLayout.EAST);
+        return wrapper;
+    }
+
+    private JPanel createSummarySection(String title, DefaultListModel<String> model) {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(new EmptyBorder(18, 14, 18, 14));
+
+        JLabel label = new JLabel(title);
+        label.setFont(new Font("Arial", Font.BOLD, 20));
+        label.setBorder(new EmptyBorder(0, 0, 14, 0));
+
+        JPanel itemsPanel = new JPanel();
+        itemsPanel.setOpaque(false);
+        itemsPanel.setLayout(new GridLayout(Math.max(model.size(), 1), 1, 0, 8));
+
+        for (int i = 0; i < model.size(); i++) {
+            JLabel itemLabel = new JLabel(model.get(i));
+            itemLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+            itemLabel.setVerticalAlignment(SwingConstants.TOP);
+            itemLabel.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(Color.LIGHT_GRAY),
+                    new EmptyBorder(8, 8, 8, 8)
+            ));
+            itemsPanel.add(itemLabel);
+        }
+
+        panel.add(label, BorderLayout.NORTH);
+        panel.add(itemsPanel, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private DefaultListModel<String> loadUpcomingRecurrences() {
+        DefaultListModel<String> model = new DefaultListModel<>();
+        Company company = getSelectedCompany();
+
+        if (company == null || recurrenceRuleService == null) {
+            model.addElement("Nenhuma empresa selecionada");
+            return model;
+        }
+
+        List<RecurrenceRule> rules = recurrenceRuleService.findUpcomingByCompany(company, SIDE_PANEL_ITEMS_LIMIT);
+
+        if (rules.isEmpty()) {
+            model.addElement("Sem recorrencias futuras");
+            return model;
+        }
+
+        for (RecurrenceRule rule : rules) {
+            Transaction transaction = rule.getTransaction();
+            LocalDate nextExecution = recurrenceRuleService.calculateNextExecution(rule);
+            model.addElement(formatRecurrenceDetails(rule, transaction, nextExecution));
+        }
+
+        return model;
+    }
+
+    private DefaultListModel<String> loadLastTransactions() {
+        DefaultListModel<String> model = new DefaultListModel<>();
+        Company company = getSelectedCompany();
+
+        if (company == null || transactionService == null) {
+            model.addElement("Nenhuma empresa selecionada");
+            return model;
+        }
+
+        List<Transaction> transactions = transactionService.findLastByCompany(company, SIDE_PANEL_ITEMS_LIMIT);
+
+        if (transactions.isEmpty()) {
+            model.addElement("Sem movimentacoes cadastradas");
+            return model;
+        }
+
+        for (Transaction transaction : transactions) {
+            model.addElement(formatTransactionDetails(transaction.getData(), transaction));
+        }
+
+        return model;
+    }
+
+    private Company getSelectedCompany() {
+        if (userCompany == null) {
+            return null;
+        }
+
+        return userCompany.getCompany();
+    }
+
+    private String formatDate(LocalDate date) {
+        if (date == null) {
+            return "sem data";
+        }
+
+        return date.format(dateFormatter);
+    }
+
+    private String formatRecurrenceDetails(
+            RecurrenceRule rule,
+            Transaction transaction,
+            LocalDate nextExecution
+    ) {
+        return "<html>"
+                + "<b>Proxima:</b> " + escapeHtml(formatDate(nextExecution)) + "<br>"
+                + "<b>Frequencia:</b> " + escapeHtml(String.valueOf(rule.getFrequencia())) + "<br>"
+                + formatTransactionRows(transaction)
+                + "</html>";
+    }
+
+    private String formatTransactionDetails(LocalDate date, Transaction transaction) {
+        return "<html>"
+                + "<b>Data:</b> " + escapeHtml(formatDate(date)) + "<br>"
+                + formatTransactionRows(transaction)
+                + "</html>";
+    }
+
+    private String formatTransactionRows(Transaction transaction) {
+        if (transaction == null) {
+            return "movimentacao nao informada";
+        }
+
+        String value = transaction.getValor() == null ? "sem valor" : moneyFormatter.format(transaction.getValor());
+        TransactionCategory category = transaction.getTransactionCategory();
+        String categoryName = category == null ? "sem categoria" : category.getName();
+        String bankAccount = transaction.getBankAccount() == null
+                ? "sem conta"
+                : transaction.getBankAccount().getBanco() + " - " + transaction.getBankAccount().getNumeroConta();
+
+        return "<b>Descricao:</b> " + escapeHtml(transaction.getDescricao()) + "<br>"
+                + "<b>Tipo:</b> " + escapeHtml(String.valueOf(transaction.getTipo())) + "<br>"
+                + "<b>Forma:</b> " + escapeHtml(String.valueOf(transaction.getForma())) + "<br>"
+                + "<b>Categoria:</b> " + escapeHtml(categoryName) + "<br>"
+                + "<b>Conta:</b> " + escapeHtml(bankAccount) + "<br>"
+                + "<b>Valor:</b> " + escapeHtml(value);
+    }
+
+    private String escapeHtml(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return value
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;");
+    }
+
+    private JPanel createPlaceholderPanel(String title) {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(Color.WHITE);
+
+        JLabel label = new JLabel(title);
+        label.setFont(new Font("Arial", Font.PLAIN, 32));
+        panel.add(label);
+
+        return panel;
+    }
+
+    private JPanel createUserInfoPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.BLACK);
+        panel.setBorder(new EmptyBorder(0, 24, 18, 18));
+
+        JLabel label = new JLabel(buildUserInfoText());
+        label.setOpaque(true);
+        label.setBackground(Color.WHITE);
+        label.setForeground(Color.BLACK);
+        label.setFont(new Font("Arial", Font.PLAIN, 24));
+        label.setBorder(new EmptyBorder(4, 18, 4, 18));
+
+        panel.add(label, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private String buildUserInfoText() {
+        if (user == null || userCompany == null) {
+            return "informacoes do usuario";
+        }
+
+        Company company = userCompany.getCompany();
+        String companyName = company == null ? "empresa nao informada" : company.getNomeFantasia();
+        return "usuario: " + user.getLogin() + " | empresa: " + companyName + " | perfil: " + userCompany.getRole();
+    }
+
+    private void showContent(String cardName) {
+        contentLayout.show(contentPanel, cardName);
+    }
+
+    private static class ChartPlaceholderPanel extends JPanel {
+        private ChartPlaceholderPanel() {
+            setPreferredSize(new Dimension(240, 240));
+            setOpaque(false);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(Color.BLACK);
+            g2.setStroke(new BasicStroke(12));
+            g2.drawOval(25, 25, 190, 190);
+            g2.setFont(new Font("Arial", Font.PLAIN, 24));
+            FontMetrics metrics = g2.getFontMetrics();
+            String text = "JFreeChart";
+            int x = (getWidth() - metrics.stringWidth(text)) / 2;
+            int y = (getHeight() + metrics.getAscent()) / 2 - 10;
+            g2.drawString(text, x, y);
+            g2.dispose();
+        }
     }
 }

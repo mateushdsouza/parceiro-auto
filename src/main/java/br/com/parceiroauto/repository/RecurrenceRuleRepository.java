@@ -2,6 +2,7 @@ package br.com.parceiroauto.repository;
 
 import br.com.parceiroauto.entity.RecurrenceRule;
 import br.com.parceiroauto.entity.Transaction;
+import br.com.parceiroauto.entity.Company;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 
@@ -45,6 +46,17 @@ public class RecurrenceRuleRepository {
                         "SELECT rr FROM RecurrenceRule rr ORDER BY rr.id",
                         RecurrenceRule.class
                 )
+                .getResultList();
+    }
+
+    public List<RecurrenceRule> findByCompany(Company company) {
+        return em.createQuery(
+                        "SELECT rr FROM RecurrenceRule rr " +
+                                "WHERE rr.transaction.company = :company " +
+                                "ORDER BY rr.ultimaExecucao ASC, rr.id ASC",
+                        RecurrenceRule.class
+                )
+                .setParameter("company", company)
                 .getResultList();
     }
 

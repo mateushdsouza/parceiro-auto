@@ -6,10 +6,15 @@ import br.com.parceiroauto.controller.LoginCompanyController;
 import br.com.parceiroauto.controller.LoginController;
 import br.com.parceiroauto.controller.RegisterCompanyController;
 import br.com.parceiroauto.controller.RegisterController;
+import br.com.parceiroauto.repository.BankAccountRepository;
 import br.com.parceiroauto.repository.CompanyRepository;
+import br.com.parceiroauto.repository.RecurrenceRuleRepository;
+import br.com.parceiroauto.repository.TransactionRepository;
 import br.com.parceiroauto.repository.UserCompanyRepository;
 import br.com.parceiroauto.repository.UserRepository;
 import br.com.parceiroauto.service.CompanyService;
+import br.com.parceiroauto.service.RecurrenceRuleService;
+import br.com.parceiroauto.service.TransactionService;
 import br.com.parceiroauto.service.UserCompanyService;
 import br.com.parceiroauto.service.UserService;
 import br.com.parceiroauto.view.swing.LoginFrame;
@@ -43,7 +48,25 @@ public class Main {
         RegisterCompanyController registerCompanyController =
                 new RegisterCompanyController(companyService, userCompanyService);
 
-        new LoginFrame(loginController, registerController, loginCompanyController, registerCompanyController);
+        BankAccountRepository bankAccountRepository = new BankAccountRepository(em);
+
+        TransactionRepository transactionRepository = new TransactionRepository(em);
+
+        TransactionService transactionService = new TransactionService(transactionRepository, bankAccountRepository);
+
+        RecurrenceRuleRepository recurrenceRuleRepository = new RecurrenceRuleRepository(em);
+
+        RecurrenceRuleService recurrenceRuleService =
+                new RecurrenceRuleService(recurrenceRuleRepository, transactionService);
+
+        new LoginFrame(
+                loginController,
+                registerController,
+                loginCompanyController,
+                registerCompanyController,
+                transactionService,
+                recurrenceRuleService
+        );
 
 
     }
