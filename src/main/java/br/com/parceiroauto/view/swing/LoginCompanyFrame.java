@@ -54,7 +54,7 @@ public class LoginCompanyFrame extends JFrame {
                 return;
             }
 
-            new MainFrame();
+            new MainFrame(user, selecionado);
             dispose();
         });
 
