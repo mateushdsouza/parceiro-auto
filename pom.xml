@@ -43,6 +43,11 @@
             <artifactId>flyway-database-postgresql</artifactId>
             <version>12.3.0</version> <!-- mesma versão do flyway-core -->
         </dependency>
+        <dependency>
+            <groupId>org.jfree</groupId>
+            <artifactId>jfreechart</artifactId>
+            <version>1.5.6</version>
+        </dependency>
     </dependencies>
 
 </project>

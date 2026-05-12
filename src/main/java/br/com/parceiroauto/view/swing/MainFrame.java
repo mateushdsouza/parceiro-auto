@@ -12,6 +12,7 @@ import br.com.parceiroauto.entity.User;
 import br.com.parceiroauto.entity.UserCompany;
 import br.com.parceiroauto.service.RecurrenceRuleService;
 import br.com.parceiroauto.service.TransactionService;
+import br.com.parceiroauto.view.swing.chart.TransactionPieChartPanel;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -210,9 +211,7 @@ public class MainFrame extends JFrame {
         JPanel wrapper = new JPanel(new BorderLayout(10, 0));
         wrapper.setBackground(Color.BLACK);
 
-        JPanel chartPanel = new JPanel(new GridBagLayout());
-        chartPanel.setBackground(Color.WHITE);
-        chartPanel.add(new ChartPlaceholderPanel());
+        JPanel chartPanel = TransactionPieChartPanel.createPanel(loadTransactionsForChart());
 
         JPanel sidePanel = new JPanel(new GridLayout(2, 1, 0, 0));
         sidePanel.setPreferredSize(new Dimension(360, 0));
@@ -300,6 +299,16 @@ public class MainFrame extends JFrame {
         }
 
         return model;
+    }
+
+    private List<Transaction> loadTransactionsForChart() {
+        Company company = getSelectedCompany();
+
+        if (company == null || transactionService == null) {
+            return List.of();
+        }
+
+        return transactionService.findByCompany(company);
     }
 
     private Company getSelectedCompany() {
@@ -405,27 +414,4 @@ public class MainFrame extends JFrame {
         contentLayout.show(contentPanel, cardName);
     }
 
-    private static class ChartPlaceholderPanel extends JPanel {
-        private ChartPlaceholderPanel() {
-            setPreferredSize(new Dimension(240, 240));
-            setOpaque(false);
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(Color.BLACK);
-            g2.setStroke(new BasicStroke(12));
-            g2.drawOval(25, 25, 190, 190);
-            g2.setFont(new Font("Arial", Font.PLAIN, 24));
-            FontMetrics metrics = g2.getFontMetrics();
-            String text = "JFreeChart";
-            int x = (getWidth() - metrics.stringWidth(text)) / 2;
-            int y = (getHeight() + metrics.getAscent()) / 2 - 10;
-            g2.drawString(text, x, y);
-            g2.dispose();
-        }
-    }
 }
