@@ -62,4 +62,9 @@ public class UserCompany {
     public void setRole(UserCompanyRole role) {
         this.role = role;
     }
+
+    @Override
+    public String toString() {
+        return company.getNomeFantasia();
+    }
 }
