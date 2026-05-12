@@ -5,6 +5,8 @@ import br.com.parceiroauto.controller.RegisterCompanyController;
 import br.com.parceiroauto.entity.User;
 import br.com.parceiroauto.service.RecurrenceRuleService;
 import br.com.parceiroauto.service.TransactionService;
+import br.com.parceiroauto.controller.LoginController;
+import br.com.parceiroauto.controller.RegisterController;
 
 import javax.swing.*;
 
@@ -14,22 +16,30 @@ public class RegisterCompanyFrame extends JFrame {
     private final LoginCompanyController loginCompanyController;
     private final TransactionService transactionService;
     private final RecurrenceRuleService recurrenceRuleService;
+    private final LoginController loginController;
+    private final RegisterController registerController;
 
     public RegisterCompanyFrame(
             User user,
             RegisterCompanyController registerCompanyController,
-            LoginCompanyController loginCompanyController
+            LoginCompanyController loginCompanyController,
+            LoginController loginController,
+            RegisterController registerController
     ) {
-        this(user, registerCompanyController, loginCompanyController, null, null);
+        this(user, registerCompanyController, loginCompanyController, loginController, registerController, null, null);
     }
 
     public RegisterCompanyFrame(
             User user,
             RegisterCompanyController registerCompanyController,
             LoginCompanyController loginCompanyController,
+            LoginController loginController,
+            RegisterController registerController,
             TransactionService transactionService,
             RecurrenceRuleService recurrenceRuleService
     ) {
+        this.loginController = loginController;
+        this.registerController = registerController;
         this.user = user;
         this.registerCompanyController = registerCompanyController;
         this.loginCompanyController = loginCompanyController;
@@ -89,6 +99,8 @@ public class RegisterCompanyFrame extends JFrame {
                     user,
                     loginCompanyController,
                     registerCompanyController,
+                    loginController,
+                    registerController,
                     transactionService,
                     recurrenceRuleService
             );
@@ -100,6 +112,8 @@ public class RegisterCompanyFrame extends JFrame {
                     user,
                     loginCompanyController,
                     registerCompanyController,
+                    loginController,
+                    registerController,
                     transactionService,
                     recurrenceRuleService
             );

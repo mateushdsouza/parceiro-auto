@@ -1,7 +1,9 @@
 package br.com.parceiroauto.view.swing;
 
 import br.com.parceiroauto.controller.LoginCompanyController;
+import br.com.parceiroauto.controller.LoginController;
 import br.com.parceiroauto.controller.RegisterCompanyController;
+import br.com.parceiroauto.controller.RegisterController;
 import br.com.parceiroauto.entity.User;
 import br.com.parceiroauto.entity.UserCompany;
 import br.com.parceiroauto.service.RecurrenceRuleService;
@@ -16,19 +18,25 @@ public class LoginCompanyFrame extends JFrame {
     private final RegisterCompanyController registerCompanyController;
     private final TransactionService transactionService;
     private final RecurrenceRuleService recurrenceRuleService;
+    private final LoginController loginController;
+    private final RegisterController registerController;
 
     public LoginCompanyFrame(
             User user,
             LoginCompanyController controller,
-            RegisterCompanyController registerCompanyController
+            RegisterCompanyController registerCompanyController,
+            LoginController loginController,
+            RegisterController registerController
     ) {
-        this(user, controller, registerCompanyController, null, null);
+        this( user, controller, registerCompanyController, loginController, registerController, null, null);
     }
 
     public LoginCompanyFrame(
             User user,
             LoginCompanyController controller,
             RegisterCompanyController registerCompanyController,
+            LoginController loginController,
+            RegisterController registerController,
             TransactionService transactionService,
             RecurrenceRuleService recurrenceRuleService
     ) {
@@ -37,6 +45,8 @@ public class LoginCompanyFrame extends JFrame {
         this.registerCompanyController = registerCompanyController;
         this.transactionService = transactionService;
         this.recurrenceRuleService = recurrenceRuleService;
+        this.loginController = loginController;
+        this.registerController = registerController;
 
         setTitle("Selecionar Empresa");
         setSize(420, 260);
@@ -70,7 +80,7 @@ public class LoginCompanyFrame extends JFrame {
                 return;
             }
 
-            new MainFrame(user, selecionado, transactionService, recurrenceRuleService);
+            new MainFrame(user, selecionado, transactionService, recurrenceRuleService, loginController, registerController, controller, registerCompanyController);
             dispose();
         });
 
@@ -87,6 +97,8 @@ public class LoginCompanyFrame extends JFrame {
                     user,
                     registerCompanyController,
                     controller,
+                    loginController,
+                    registerController,
                     transactionService,
                     recurrenceRuleService
             );

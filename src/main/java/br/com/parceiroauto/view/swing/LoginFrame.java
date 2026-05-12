@@ -121,6 +121,8 @@ public class LoginFrame extends JFrame {
                         user,
                         loginCompanyController,
                         registerCompanyController,
+                        controller,
+                        registerController,
                         transactionService,
                         recurrenceRuleService
                 );

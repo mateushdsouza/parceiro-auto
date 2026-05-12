@@ -1,5 +1,9 @@
 package br.com.parceiroauto.view.swing;
 
+import br.com.parceiroauto.controller.LoginCompanyController;
+import br.com.parceiroauto.controller.LoginController;
+import br.com.parceiroauto.controller.RegisterCompanyController;
+import br.com.parceiroauto.controller.RegisterController;
 import br.com.parceiroauto.entity.Company;
 import br.com.parceiroauto.entity.RecurrenceRule;
 import br.com.parceiroauto.entity.Transaction;
@@ -28,6 +32,10 @@ public class MainFrame extends JFrame {
 
     private final User user;
     private final UserCompany userCompany;
+    private final LoginController loginController;
+    private final RegisterController registerController;
+    private final LoginCompanyController loginCompanyController;
+    private final RegisterCompanyController registerCompanyController;
     private final TransactionService transactionService;
     private final RecurrenceRuleService recurrenceRuleService;
     private final CardLayout contentLayout;
@@ -38,18 +46,22 @@ public class MainFrame extends JFrame {
     );
 
     public MainFrame() {
-        this(null, null, null, null);
+        this(null, null, null, null, null, null, null, null);
     }
 
     public MainFrame(User user, UserCompany userCompany) {
-        this(user, userCompany, null, null);
+        this(user, userCompany, null, null, null, null, null, null);
     }
 
     public MainFrame(
             User user,
             UserCompany userCompany,
             TransactionService transactionService,
-            RecurrenceRuleService recurrenceRuleService
+            RecurrenceRuleService recurrenceRuleService,
+            LoginController loginController,
+            RegisterController registerController,
+            LoginCompanyController loginCompanyController,
+            RegisterCompanyController registerCompanyController
     ) {
         this.user = user;
         this.userCompany = userCompany;
@@ -57,6 +69,10 @@ public class MainFrame extends JFrame {
         this.recurrenceRuleService = recurrenceRuleService;
         this.contentLayout = new CardLayout();
         this.contentPanel = new JPanel(contentLayout);
+        this.loginController = loginController;
+        this.registerController = registerController;
+        this.loginCompanyController = loginCompanyController;
+        this.registerCompanyController = registerCompanyController;
 
         setTitle("Parceiro Auto");
         setMinimumSize(new Dimension(900, 520));
@@ -79,12 +95,25 @@ public class MainFrame extends JFrame {
         topMenu.setBackground(Color.BLACK);
         topMenu.setBorder(new EmptyBorder(18, 24, 0, 18));
 
-        JLabel userOptions = new JLabel("opcoes do usuario");
-        userOptions.setOpaque(true);
-        userOptions.setBackground(Color.WHITE);
-        userOptions.setBorder(new EmptyBorder(0, 12, 0, 12));
-        userOptions.setFont(new Font("Arial", Font.PLAIN, 26));
-        topMenu.add(userOptions, BorderLayout.WEST);
+        JButton btnUserOptions = new JButton("opcoes do usuario");
+
+        btnUserOptions.setOpaque(true);
+        btnUserOptions.setBackground(Color.WHITE);
+        btnUserOptions.setBorder(new EmptyBorder(0, 12, 0, 12));
+        btnUserOptions.setFont(new Font("Arial", Font.PLAIN, 26));
+
+        JPopupMenu popupMenu = createPopupMenu();
+
+        btnUserOptions.addActionListener(e -> {
+
+            popupMenu.show(
+                    btnUserOptions,
+                    0,
+                    btnUserOptions.getHeight()
+            );
+        });
+
+        topMenu.add(btnUserOptions, BorderLayout.WEST);
 
         JPanel buttonsPanel = new JPanel(new GridLayout(1, 5, 4, 0));
         buttonsPanel.setBackground(Color.BLACK);
@@ -97,6 +126,61 @@ public class MainFrame extends JFrame {
         topMenu.add(buttonsPanel, BorderLayout.CENTER);
         return topMenu;
     }
+
+    private JPopupMenu createPopupMenu() {
+
+        JPopupMenu popupMenu = new JPopupMenu();
+
+        JMenuItem logout = new JMenuItem("Logout");
+        logout.setOpaque(true);
+        logout.setBackground(Color.WHITE);
+        logout.setBorder(new EmptyBorder(0, 12, 0, 12));
+        logout.setFont(new Font("Arial", Font.PLAIN, 26));
+
+        JMenuItem trocarEmpresa = new JMenuItem("Trocar empresa");
+        trocarEmpresa.setOpaque(true);
+        trocarEmpresa.setBackground(Color.WHITE);
+        trocarEmpresa.setBorder(new EmptyBorder(0, 12, 0, 12));
+        trocarEmpresa.setFont(new Font("Arial", Font.PLAIN, 26));
+
+
+        popupMenu.add(trocarEmpresa);
+        popupMenu.add(logout);
+
+        // ação logout
+        logout.addActionListener(e -> {
+
+            dispose();
+
+            new LoginFrame(
+                    loginController,
+                    registerController,
+                    loginCompanyController,
+                    registerCompanyController,
+                    transactionService,
+                    recurrenceRuleService);
+        });
+
+        // ação trocar empresa
+        trocarEmpresa.addActionListener(e -> {
+
+            dispose();
+
+            new LoginCompanyFrame(
+                    user,
+                    loginCompanyController,
+                    registerCompanyController,
+                    loginController,
+                    registerController,
+                    transactionService,
+                    recurrenceRuleService
+            );
+        });
+
+
+        return popupMenu;
+    }
+
 
     private JButton createMenuButton(String text, String cardName) {
         JButton button = new JButton(text);
@@ -234,11 +318,7 @@ public class MainFrame extends JFrame {
         return date.format(dateFormatter);
     }
 
-    private String formatRecurrenceDetails(
-            RecurrenceRule rule,
-            Transaction transaction,
-            LocalDate nextExecution
-    ) {
+    private String formatRecurrenceDetails(RecurrenceRule rule, Transaction transaction, LocalDate nextExecution) {
         return "<html>"
                 + "<b>Proxima:</b> " + escapeHtml(formatDate(nextExecution)) + "<br>"
                 + "<b>Frequencia:</b> " + escapeHtml(String.valueOf(rule.getFrequencia())) + "<br>"
