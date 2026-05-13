@@ -1,46 +1,17 @@
 package br.com.parceiroauto.view.swing;
 
-import br.com.parceiroauto.controller.LoginCompanyController;
+import br.com.parceiroauto.confg.AppContext;
 import br.com.parceiroauto.controller.LoginController;
-import br.com.parceiroauto.controller.RegisterCompanyController;
-import br.com.parceiroauto.controller.RegisterController;
 import br.com.parceiroauto.entity.User;
-import br.com.parceiroauto.service.RecurrenceRuleService;
-import br.com.parceiroauto.service.TransactionService;
 
 import javax.swing.*;
 
 public class LoginFrame extends JFrame {
-    private final LoginController controller;
-    private final RegisterController registerController;
-    private final LoginCompanyController loginCompanyController;
-    private final RegisterCompanyController registerCompanyController;
-    private final TransactionService transactionService;
-    private final RecurrenceRuleService recurrenceRuleService;
+    private final AppContext context;
 
-    public LoginFrame(
-            LoginController controller,
-            RegisterController registerController,
-            LoginCompanyController loginCompanyController,
-            RegisterCompanyController registerCompanyController
-    ) {
-        this(controller, registerController, loginCompanyController, registerCompanyController, null, null);
-    }
-
-    public LoginFrame(
-            LoginController controller,
-            RegisterController registerController,
-            LoginCompanyController loginCompanyController,
-            RegisterCompanyController registerCompanyController,
-            TransactionService transactionService,
-            RecurrenceRuleService recurrenceRuleService
-    ) {
-        this.controller = controller;
-        this.registerController = registerController;
-        this.loginCompanyController = loginCompanyController;
-        this.registerCompanyController = registerCompanyController;
-        this.transactionService = transactionService;
-        this.recurrenceRuleService = recurrenceRuleService;
+    public LoginFrame(AppContext context) {
+        this.context = context;
+        LoginController controller = context.getLoginController();
 
         setTitle("Login");
         setSize(420, 260);
@@ -117,15 +88,7 @@ public class LoginFrame extends JFrame {
                         "Bem-vindo " + user.getLogin()
                 );
 
-                new LoginCompanyFrame(
-                        user,
-                        loginCompanyController,
-                        registerCompanyController,
-                        controller,
-                        registerController,
-                        transactionService,
-                        recurrenceRuleService
-                );
+                new LoginCompanyFrame(user, context);
 
                 dispose();
             } else {
@@ -144,14 +107,7 @@ public class LoginFrame extends JFrame {
 
         btnCadastrar.addActionListener(e -> {
 
-            new RegisterFrame(
-                    registerController,
-                    controller,
-                    loginCompanyController,
-                    registerCompanyController,
-                    transactionService,
-                    recurrenceRuleService
-            );
+            new RegisterFrame(context);
 
             dispose();
         });

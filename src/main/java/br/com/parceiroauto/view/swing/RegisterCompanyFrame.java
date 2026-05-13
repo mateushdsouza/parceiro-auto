@@ -1,50 +1,19 @@
 package br.com.parceiroauto.view.swing;
 
-import br.com.parceiroauto.controller.LoginCompanyController;
+import br.com.parceiroauto.confg.AppContext;
 import br.com.parceiroauto.controller.RegisterCompanyController;
 import br.com.parceiroauto.entity.User;
-import br.com.parceiroauto.service.RecurrenceRuleService;
-import br.com.parceiroauto.service.TransactionService;
-import br.com.parceiroauto.controller.LoginController;
-import br.com.parceiroauto.controller.RegisterController;
 
 import javax.swing.*;
 
 public class RegisterCompanyFrame extends JFrame {
     private final User user;
-    private final RegisterCompanyController registerCompanyController;
-    private final LoginCompanyController loginCompanyController;
-    private final TransactionService transactionService;
-    private final RecurrenceRuleService recurrenceRuleService;
-    private final LoginController loginController;
-    private final RegisterController registerController;
+    private final AppContext context;
 
-    public RegisterCompanyFrame(
-            User user,
-            RegisterCompanyController registerCompanyController,
-            LoginCompanyController loginCompanyController,
-            LoginController loginController,
-            RegisterController registerController
-    ) {
-        this(user, registerCompanyController, loginCompanyController, loginController, registerController, null, null);
-    }
-
-    public RegisterCompanyFrame(
-            User user,
-            RegisterCompanyController registerCompanyController,
-            LoginCompanyController loginCompanyController,
-            LoginController loginController,
-            RegisterController registerController,
-            TransactionService transactionService,
-            RecurrenceRuleService recurrenceRuleService
-    ) {
-        this.loginController = loginController;
-        this.registerController = registerController;
+    public RegisterCompanyFrame(User user, AppContext context) {
         this.user = user;
-        this.registerCompanyController = registerCompanyController;
-        this.loginCompanyController = loginCompanyController;
-        this.transactionService = transactionService;
-        this.recurrenceRuleService = recurrenceRuleService;
+        this.context = context;
+        RegisterCompanyController registerCompanyController = context.getRegisterCompanyController();
 
         setTitle("Cadastro de Empresa");
         setSize(420, 390);
@@ -95,28 +64,12 @@ public class RegisterCompanyFrame extends JFrame {
             }
 
             JOptionPane.showMessageDialog(this, "Empresa cadastrada com sucesso");
-            new LoginCompanyFrame(
-                    user,
-                    loginCompanyController,
-                    registerCompanyController,
-                    loginController,
-                    registerController,
-                    transactionService,
-                    recurrenceRuleService
-            );
+            new LoginCompanyFrame(user, context);
             dispose();
         });
 
         btnVoltar.addActionListener(e -> {
-            new LoginCompanyFrame(
-                    user,
-                    loginCompanyController,
-                    registerCompanyController,
-                    loginController,
-                    registerController,
-                    transactionService,
-                    recurrenceRuleService
-            );
+            new LoginCompanyFrame(user, context);
             dispose();
         });
 

@@ -1,47 +1,17 @@
 package br.com.parceiroauto.view.swing;
 
-import br.com.parceiroauto.controller.LoginController;
+import br.com.parceiroauto.confg.AppContext;
 import br.com.parceiroauto.controller.RegisterController;
-import br.com.parceiroauto.controller.LoginCompanyController;
-import br.com.parceiroauto.controller.RegisterCompanyController;
-import br.com.parceiroauto.service.RecurrenceRuleService;
-import br.com.parceiroauto.service.TransactionService;
 
 import javax.swing.*;
 
 public class RegisterFrame extends JFrame {
 
-    private final RegisterController controller;
-    private final LoginController loginController;
-    private final LoginCompanyController loginCompanyController;
-    private final RegisterCompanyController registerCompanyController;
-    private final TransactionService transactionService;
-    private final RecurrenceRuleService recurrenceRuleService;
+    private final AppContext context;
 
-    public RegisterFrame(
-            RegisterController controller,
-            LoginController loginController,
-            LoginCompanyController loginCompanyController,
-            RegisterCompanyController registerCompanyController
-    ) {
-        this(controller, loginController, loginCompanyController, registerCompanyController, null, null);
-    }
-
-    public RegisterFrame(
-            RegisterController controller,
-            LoginController loginController,
-            LoginCompanyController loginCompanyController,
-            RegisterCompanyController registerCompanyController,
-            TransactionService transactionService,
-            RecurrenceRuleService recurrenceRuleService
-    ) {
-
-        this.controller = controller;
-        this.loginController = loginController;
-        this.loginCompanyController = loginCompanyController;
-        this.registerCompanyController = registerCompanyController;
-        this.transactionService = transactionService;
-        this.recurrenceRuleService = recurrenceRuleService;
+    public RegisterFrame(AppContext context) {
+        this.context = context;
+        RegisterController controller = context.getRegisterController();
 
         // =========================
         // CONFIGURACAO DA JANELA
@@ -239,26 +209,12 @@ public class RegisterFrame extends JFrame {
 
             dispose();
 
-            new LoginFrame(
-                    loginController,
-                    controller,
-                    loginCompanyController,
-                    registerCompanyController,
-                    transactionService,
-                    recurrenceRuleService
-            );
+            new LoginFrame(context);
 
         });
 
         btnBack.addActionListener(e -> {
-            new LoginFrame(
-                    loginController,
-                    controller,
-                    loginCompanyController,
-                    registerCompanyController,
-                    transactionService,
-                    recurrenceRuleService
-            );
+            new LoginFrame(context);
             dispose();
         });
     }

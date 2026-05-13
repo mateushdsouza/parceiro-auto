@@ -1,7 +1,9 @@
 package br.com.parceiroauto;
 
+import br.com.parceiroauto.confg.AppContext;
 import br.com.parceiroauto.confg.FlyWayconfg;
 import br.com.parceiroauto.confg.JPAUtil;
+import br.com.parceiroauto.controller.BankAccountController;
 import br.com.parceiroauto.controller.LoginCompanyController;
 import br.com.parceiroauto.controller.LoginController;
 import br.com.parceiroauto.controller.RegisterCompanyController;
@@ -12,6 +14,7 @@ import br.com.parceiroauto.repository.RecurrenceRuleRepository;
 import br.com.parceiroauto.repository.TransactionRepository;
 import br.com.parceiroauto.repository.UserCompanyRepository;
 import br.com.parceiroauto.repository.UserRepository;
+import br.com.parceiroauto.service.BankAccountService;
 import br.com.parceiroauto.service.CompanyService;
 import br.com.parceiroauto.service.RecurrenceRuleService;
 import br.com.parceiroauto.service.TransactionService;
@@ -49,6 +52,8 @@ public class Main {
                 new RegisterCompanyController(companyService, userCompanyService);
 
         BankAccountRepository bankAccountRepository = new BankAccountRepository(em);
+        BankAccountService bankAccountService = new BankAccountService(bankAccountRepository);
+        BankAccountController bankAccountController = new BankAccountController(bankAccountService);
 
         TransactionRepository transactionRepository = new TransactionRepository(em);
 
@@ -59,15 +64,17 @@ public class Main {
         RecurrenceRuleService recurrenceRuleService =
                 new RecurrenceRuleService(recurrenceRuleRepository, transactionService);
 
-        new LoginFrame(
+        AppContext context = new AppContext(
                 loginController,
                 registerController,
                 loginCompanyController,
                 registerCompanyController,
+                bankAccountController,
                 transactionService,
                 recurrenceRuleService
         );
 
+        new LoginFrame(context);
 
     }
 }

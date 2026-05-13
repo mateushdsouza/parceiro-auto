@@ -82,9 +82,7 @@ public class BankAccountService {
             throw new IllegalArgumentException("Conta bancaria nao pode ser nula");
         }
 
-        if (!bankAccount.getCompany().getId().equals(company.getId())) {
-            throw new IllegalArgumentException("A conta bancaria nao pertence a essa empresa");
-        }
+        validarContaPertenceEmpresa(company, bankAccount);
 
         bankAccountRepository.clearDefaultByCompany(company);
         bankAccount.setContaPadrao(true);
@@ -100,9 +98,7 @@ public class BankAccountService {
             throw new IllegalArgumentException("Conta bancaria nao pode ser nula");
         }
 
-        if (!bankAccount.getCompany().getId().equals(company.getId())) {
-            throw new IllegalArgumentException("A conta bancaria nao pertence a essa empresa");
-        }
+        validarContaPertenceEmpresa(company, bankAccount);
 
         bankAccountRepository.delete(bankAccount);
     }
@@ -123,6 +119,8 @@ public class BankAccountService {
         if (bankAccount == null) {
             throw new IllegalArgumentException("Conta bancaria nao pode ser nula");
         }
+
+        validarContaPertenceEmpresa(company, bankAccount);
 
         String bancoNormalizado = validarBanco(banco);
         String agenciaNormalizada = validarAgencia(agencia);
@@ -150,6 +148,15 @@ public class BankAccountService {
         bankAccount.setContaPadrao(contaPadrao);
         bankAccountRepository.update(bankAccount);
         return bankAccount;
+    }
+
+    private void validarContaPertenceEmpresa(Company company, BankAccount bankAccount) {
+        if (bankAccount.getCompany() == null
+                || bankAccount.getCompany().getId() == null
+                || company.getId() == null
+                || !bankAccount.getCompany().getId().equals(company.getId())) {
+            throw new IllegalArgumentException("A conta bancaria nao pertence a essa empresa");
+        }
     }
 
     private String validarBanco(String banco) {
