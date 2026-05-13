@@ -9,11 +9,14 @@ import br.com.parceiroauto.controller.RegisterController;
 import br.com.parceiroauto.repository.BankAccountRepository;
 import br.com.parceiroauto.repository.CompanyRepository;
 import br.com.parceiroauto.repository.RecurrenceRuleRepository;
+import br.com.parceiroauto.repository.TransactionCategoryRepository;
 import br.com.parceiroauto.repository.TransactionRepository;
 import br.com.parceiroauto.repository.UserCompanyRepository;
 import br.com.parceiroauto.repository.UserRepository;
 import br.com.parceiroauto.service.CompanyService;
 import br.com.parceiroauto.service.RecurrenceRuleService;
+import br.com.parceiroauto.service.BankAccountService;
+import br.com.parceiroauto.service.TransactionCategoryService;
 import br.com.parceiroauto.service.TransactionService;
 import br.com.parceiroauto.service.UserCompanyService;
 import br.com.parceiroauto.service.UserService;
@@ -50,6 +53,13 @@ public class Main {
 
         BankAccountRepository bankAccountRepository = new BankAccountRepository(em);
 
+        BankAccountService bankAccountService = new BankAccountService(bankAccountRepository);
+
+        TransactionCategoryRepository transactionCategoryRepository = new TransactionCategoryRepository(em);
+
+        TransactionCategoryService transactionCategoryService =
+                new TransactionCategoryService(transactionCategoryRepository);
+
         TransactionRepository transactionRepository = new TransactionRepository(em);
 
         TransactionService transactionService = new TransactionService(transactionRepository, bankAccountRepository);
@@ -64,6 +74,8 @@ public class Main {
                 registerController,
                 loginCompanyController,
                 registerCompanyController,
+                bankAccountService,
+                transactionCategoryService,
                 transactionService,
                 recurrenceRuleService
         );

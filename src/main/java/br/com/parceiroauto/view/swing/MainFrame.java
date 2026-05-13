@@ -10,7 +10,9 @@ import br.com.parceiroauto.entity.Transaction;
 import br.com.parceiroauto.entity.TransactionCategory;
 import br.com.parceiroauto.entity.User;
 import br.com.parceiroauto.entity.UserCompany;
+import br.com.parceiroauto.service.BankAccountService;
 import br.com.parceiroauto.service.RecurrenceRuleService;
+import br.com.parceiroauto.service.TransactionCategoryService;
 import br.com.parceiroauto.service.TransactionService;
 import br.com.parceiroauto.view.swing.chart.TransactionPieChartPanel;
 
@@ -37,26 +39,31 @@ public class MainFrame extends JFrame {
     private final RegisterController registerController;
     private final LoginCompanyController loginCompanyController;
     private final RegisterCompanyController registerCompanyController;
+    private final BankAccountService bankAccountService;
+    private final TransactionCategoryService transactionCategoryService;
     private final TransactionService transactionService;
     private final RecurrenceRuleService recurrenceRuleService;
     private final CardLayout contentLayout;
     private final JPanel contentPanel;
+    private JPanel homePanel;
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private final NumberFormat moneyFormatter = NumberFormat.getCurrencyInstance(
             new Locale.Builder().setLanguage("pt").setRegion("BR").build()
     );
 
     public MainFrame() {
-        this(null, null, null, null, null, null, null, null);
+        this(null, null, null, null, null, null, null, null, null, null);
     }
 
     public MainFrame(User user, UserCompany userCompany) {
-        this(user, userCompany, null, null, null, null, null, null);
+        this(user, userCompany, null, null, null, null, null, null, null, null);
     }
 
     public MainFrame(
             User user,
             UserCompany userCompany,
+            BankAccountService bankAccountService,
+            TransactionCategoryService transactionCategoryService,
             TransactionService transactionService,
             RecurrenceRuleService recurrenceRuleService,
             LoginController loginController,
@@ -66,6 +73,8 @@ public class MainFrame extends JFrame {
     ) {
         this.user = user;
         this.userCompany = userCompany;
+        this.bankAccountService = bankAccountService;
+        this.transactionCategoryService = transactionCategoryService;
         this.transactionService = transactionService;
         this.recurrenceRuleService = recurrenceRuleService;
         this.contentLayout = new CardLayout();
@@ -158,6 +167,8 @@ public class MainFrame extends JFrame {
                     registerController,
                     loginCompanyController,
                     registerCompanyController,
+                    bankAccountService,
+                    transactionCategoryService,
                     transactionService,
                     recurrenceRuleService);
         });
@@ -173,6 +184,8 @@ public class MainFrame extends JFrame {
                     registerCompanyController,
                     loginController,
                     registerController,
+                    bankAccountService,
+                    transactionCategoryService,
                     transactionService,
                     recurrenceRuleService
             );
@@ -198,13 +211,38 @@ public class MainFrame extends JFrame {
         contentPanel.setBackground(Color.BLACK);
         contentPanel.setBorder(new EmptyBorder(0, 24, 0, 18));
 
-        contentPanel.add(createHomePanel(), HOME_CARD);
+        homePanel = createHomePanel();
+        contentPanel.add(homePanel, HOME_CARD);
         contentPanel.add(createPlaceholderPanel("Conta bancaria"), BANK_ACCOUNT_CARD);
-        contentPanel.add(createPlaceholderPanel("Movimentacoes"), TRANSACTIONS_CARD);
+        contentPanel.add(createTransactionsPanel(), TRANSACTIONS_CARD);
         contentPanel.add(createPlaceholderPanel("Relatorios"), REPORTS_CARD);
         contentPanel.add(createPlaceholderPanel("Funcionarios"), EMPLOYEES_CARD);
 
         return contentPanel;
+    }
+
+    private JPanel createTransactionsPanel() {
+        return new TransactionsPanel(
+                getSelectedCompany(),
+                userCompany == null ? null : userCompany.getRole(),
+                bankAccountService,
+                recurrenceRuleService,
+                transactionCategoryService,
+                transactionService,
+                this::refreshHomePanel
+        );
+    }
+
+    private void refreshHomePanel() {
+        if (homePanel == null) {
+            return;
+        }
+
+        contentPanel.remove(homePanel);
+        homePanel = createHomePanel();
+        contentPanel.add(homePanel, HOME_CARD);
+        contentPanel.revalidate();
+        contentPanel.repaint();
     }
 
     private JPanel createHomePanel() {
@@ -411,6 +449,9 @@ public class MainFrame extends JFrame {
     }
 
     private void showContent(String cardName) {
+        if (HOME_CARD.equals(cardName)) {
+            refreshHomePanel();
+        }
         contentLayout.show(contentPanel, cardName);
     }
 

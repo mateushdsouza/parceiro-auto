@@ -4,7 +4,9 @@ import br.com.parceiroauto.controller.LoginController;
 import br.com.parceiroauto.controller.RegisterController;
 import br.com.parceiroauto.controller.LoginCompanyController;
 import br.com.parceiroauto.controller.RegisterCompanyController;
+import br.com.parceiroauto.service.BankAccountService;
 import br.com.parceiroauto.service.RecurrenceRuleService;
+import br.com.parceiroauto.service.TransactionCategoryService;
 import br.com.parceiroauto.service.TransactionService;
 
 import javax.swing.*;
@@ -15,6 +17,8 @@ public class RegisterFrame extends JFrame {
     private final LoginController loginController;
     private final LoginCompanyController loginCompanyController;
     private final RegisterCompanyController registerCompanyController;
+    private final BankAccountService bankAccountService;
+    private final TransactionCategoryService transactionCategoryService;
     private final TransactionService transactionService;
     private final RecurrenceRuleService recurrenceRuleService;
 
@@ -24,7 +28,7 @@ public class RegisterFrame extends JFrame {
             LoginCompanyController loginCompanyController,
             RegisterCompanyController registerCompanyController
     ) {
-        this(controller, loginController, loginCompanyController, registerCompanyController, null, null);
+        this(controller, loginController, loginCompanyController, registerCompanyController, null, null, null, null);
     }
 
     public RegisterFrame(
@@ -32,6 +36,8 @@ public class RegisterFrame extends JFrame {
             LoginController loginController,
             LoginCompanyController loginCompanyController,
             RegisterCompanyController registerCompanyController,
+            BankAccountService bankAccountService,
+            TransactionCategoryService transactionCategoryService,
             TransactionService transactionService,
             RecurrenceRuleService recurrenceRuleService
     ) {
@@ -40,6 +46,8 @@ public class RegisterFrame extends JFrame {
         this.loginController = loginController;
         this.loginCompanyController = loginCompanyController;
         this.registerCompanyController = registerCompanyController;
+        this.bankAccountService = bankAccountService;
+        this.transactionCategoryService = transactionCategoryService;
         this.transactionService = transactionService;
         this.recurrenceRuleService = recurrenceRuleService;
 
@@ -244,6 +252,8 @@ public class RegisterFrame extends JFrame {
                     controller,
                     loginCompanyController,
                     registerCompanyController,
+                    bankAccountService,
+                    transactionCategoryService,
                     transactionService,
                     recurrenceRuleService
             );
@@ -256,6 +266,8 @@ public class RegisterFrame extends JFrame {
                     controller,
                     loginCompanyController,
                     registerCompanyController,
+                    bankAccountService,
+                    transactionCategoryService,
                     transactionService,
                     recurrenceRuleService
             );
