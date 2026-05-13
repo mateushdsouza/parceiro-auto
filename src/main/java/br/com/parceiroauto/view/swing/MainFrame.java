@@ -1,27 +1,26 @@
 package br.com.parceiroauto.view.swing;
 
-import br.com.parceiroauto.controller.LoginCompanyController;
-import br.com.parceiroauto.controller.LoginController;
-import br.com.parceiroauto.controller.RegisterCompanyController;
-import br.com.parceiroauto.controller.RegisterController;
+import br.com.parceiroauto.confg.AppContext;
+import br.com.parceiroauto.controller.BankAccountController;
+import br.com.parceiroauto.entity.BankAccount;
 import br.com.parceiroauto.entity.Company;
 import br.com.parceiroauto.entity.RecurrenceRule;
 import br.com.parceiroauto.entity.Transaction;
 import br.com.parceiroauto.entity.TransactionCategory;
 import br.com.parceiroauto.entity.User;
 import br.com.parceiroauto.entity.UserCompany;
-import br.com.parceiroauto.service.BankAccountService;
 import br.com.parceiroauto.service.RecurrenceRuleService;
-import br.com.parceiroauto.service.TransactionCategoryService;
 import br.com.parceiroauto.service.TransactionService;
 import br.com.parceiroauto.view.swing.chart.TransactionPieChartPanel;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -35,54 +34,29 @@ public class MainFrame extends JFrame {
 
     private final User user;
     private final UserCompany userCompany;
-    private final LoginController loginController;
-    private final RegisterController registerController;
-    private final LoginCompanyController loginCompanyController;
-    private final RegisterCompanyController registerCompanyController;
-    private final BankAccountService bankAccountService;
-    private final TransactionCategoryService transactionCategoryService;
-    private final TransactionService transactionService;
-    private final RecurrenceRuleService recurrenceRuleService;
+    private final AppContext context;
     private final CardLayout contentLayout;
     private final JPanel contentPanel;
     private JPanel homePanel;
+    private JTable bankAccountTable;
+    private DefaultTableModel bankAccountTableModel;
+    private JTextField bankNameField;
+    private JTextField agencyField;
+    private JTextField accountNumberField;
+    private JTextField accountTypeField;
+    private JCheckBox defaultAccountCheckBox;
+    private List<BankAccount> loadedBankAccounts = new ArrayList<>();
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private final NumberFormat moneyFormatter = NumberFormat.getCurrencyInstance(
             new Locale.Builder().setLanguage("pt").setRegion("BR").build()
     );
 
-    public MainFrame() {
-        this(null, null, null, null, null, null, null, null, null, null);
-    }
-
-    public MainFrame(User user, UserCompany userCompany) {
-        this(user, userCompany, null, null, null, null, null, null, null, null);
-    }
-
-    public MainFrame(
-            User user,
-            UserCompany userCompany,
-            BankAccountService bankAccountService,
-            TransactionCategoryService transactionCategoryService,
-            TransactionService transactionService,
-            RecurrenceRuleService recurrenceRuleService,
-            LoginController loginController,
-            RegisterController registerController,
-            LoginCompanyController loginCompanyController,
-            RegisterCompanyController registerCompanyController
-    ) {
+    public MainFrame(User user, UserCompany userCompany, AppContext context) {
         this.user = user;
         this.userCompany = userCompany;
-        this.bankAccountService = bankAccountService;
-        this.transactionCategoryService = transactionCategoryService;
-        this.transactionService = transactionService;
-        this.recurrenceRuleService = recurrenceRuleService;
+        this.context = context;
         this.contentLayout = new CardLayout();
         this.contentPanel = new JPanel(contentLayout);
-        this.loginController = loginController;
-        this.registerController = registerController;
-        this.loginCompanyController = loginCompanyController;
-        this.registerCompanyController = registerCompanyController;
 
         setTitle("Parceiro Auto");
         setMinimumSize(new Dimension(900, 520));
@@ -162,15 +136,7 @@ public class MainFrame extends JFrame {
 
             dispose();
 
-            new LoginFrame(
-                    loginController,
-                    registerController,
-                    loginCompanyController,
-                    registerCompanyController,
-                    bankAccountService,
-                    transactionCategoryService,
-                    transactionService,
-                    recurrenceRuleService);
+            new LoginFrame(context);
         });
 
         // ação trocar empresa
@@ -178,17 +144,7 @@ public class MainFrame extends JFrame {
 
             dispose();
 
-            new LoginCompanyFrame(
-                    user,
-                    loginCompanyController,
-                    registerCompanyController,
-                    loginController,
-                    registerController,
-                    bankAccountService,
-                    transactionCategoryService,
-                    transactionService,
-                    recurrenceRuleService
-            );
+            new LoginCompanyFrame(user, context);
         });
 
 
@@ -213,7 +169,7 @@ public class MainFrame extends JFrame {
 
         homePanel = createHomePanel();
         contentPanel.add(homePanel, HOME_CARD);
-        contentPanel.add(createPlaceholderPanel("Conta bancaria"), BANK_ACCOUNT_CARD);
+        contentPanel.add(createBankAccountPanel(), BANK_ACCOUNT_CARD);
         contentPanel.add(createTransactionsPanel(), TRANSACTIONS_CARD);
         contentPanel.add(createPlaceholderPanel("Relatorios"), REPORTS_CARD);
         contentPanel.add(createPlaceholderPanel("Funcionarios"), EMPLOYEES_CARD);
@@ -225,10 +181,10 @@ public class MainFrame extends JFrame {
         return new TransactionsPanel(
                 getSelectedCompany(),
                 userCompany == null ? null : userCompany.getRole(),
-                bankAccountService,
-                recurrenceRuleService,
-                transactionCategoryService,
-                transactionService,
+                context.getBankAccountService(),
+                context.getRecurrenceRuleService(),
+                context.getTransactionCategoryService(),
+                context.getTransactionService(),
                 this::refreshHomePanel
         );
     }
@@ -260,6 +216,303 @@ public class MainFrame extends JFrame {
         wrapper.add(chartPanel, BorderLayout.CENTER);
         wrapper.add(sidePanel, BorderLayout.EAST);
         return wrapper;
+    }
+
+    private JPanel createBankAccountPanel() {
+        JPanel panel = new JPanel(new BorderLayout(12, 0));
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(new EmptyBorder(18, 18, 18, 18));
+
+        panel.add(createBankAccountListPanel(), BorderLayout.CENTER);
+        panel.add(createBankAccountFormPanel(), BorderLayout.EAST);
+
+        refreshBankAccountTable();
+        return panel;
+    }
+
+    private JPanel createBankAccountListPanel() {
+        JPanel panel = new JPanel(new BorderLayout(0, 12));
+        panel.setOpaque(false);
+
+        JLabel title = new JLabel("Contas bancarias");
+        title.setFont(new Font("Arial", Font.BOLD, 24));
+        panel.add(title, BorderLayout.NORTH);
+
+        bankAccountTableModel = new DefaultTableModel(
+                new Object[]{"Banco", "Agencia", "Conta", "Tipo", "Saldo", "Padrao"},
+                0
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        bankAccountTable = new JTable(bankAccountTableModel);
+        bankAccountTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        bankAccountTable.setRowHeight(28);
+        bankAccountTable.getTableHeader().setReorderingAllowed(false);
+        bankAccountTable.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                fillBankAccountFormFromSelection();
+            }
+        });
+
+        JScrollPane scrollPane = new JScrollPane(bankAccountTable);
+        panel.add(scrollPane, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private JPanel createBankAccountFormPanel() {
+        JPanel panel = new JPanel(new BorderLayout(0, 14));
+        panel.setBackground(Color.WHITE);
+        panel.setPreferredSize(new Dimension(340, 0));
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.LIGHT_GRAY),
+                new EmptyBorder(16, 16, 16, 16)
+        ));
+
+        JLabel title = new JLabel("Dados da conta");
+        title.setFont(new Font("Arial", Font.BOLD, 20));
+        panel.add(title, BorderLayout.NORTH);
+
+        JPanel fieldsPanel = new JPanel(new GridBagLayout());
+        fieldsPanel.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(0, 0, 10, 0);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridx = 0;
+        gbc.weightx = 1;
+
+        bankNameField = new JTextField();
+        agencyField = new JTextField();
+        accountNumberField = new JTextField();
+        accountTypeField = new JTextField();
+        defaultAccountCheckBox = new JCheckBox("Conta padrao");
+        defaultAccountCheckBox.setOpaque(false);
+
+        addBankAccountField(fieldsPanel, gbc, "Banco", bankNameField, 0);
+        addBankAccountField(fieldsPanel, gbc, "Agencia", agencyField, 2);
+        addBankAccountField(fieldsPanel, gbc, "Numero da conta", accountNumberField, 4);
+        addBankAccountField(fieldsPanel, gbc, "Tipo da conta", accountTypeField, 6);
+
+        gbc.gridy = 8;
+        fieldsPanel.add(defaultAccountCheckBox, gbc);
+
+        panel.add(fieldsPanel, BorderLayout.CENTER);
+
+        JPanel buttonsPanel = new JPanel(new GridLayout(2, 2, 8, 8));
+        buttonsPanel.setOpaque(false);
+
+        JButton saveButton = new JButton("Salvar");
+        JButton clearButton = new JButton("Limpar");
+        JButton deleteButton = new JButton("Remover");
+        JButton defaultButton = new JButton("Definir padrao");
+
+        saveButton.addActionListener(e -> saveBankAccount());
+        clearButton.addActionListener(e -> clearBankAccountForm());
+        deleteButton.addActionListener(e -> deleteSelectedBankAccount());
+        defaultButton.addActionListener(e -> defineSelectedBankAccountAsDefault());
+
+        buttonsPanel.add(saveButton);
+        buttonsPanel.add(clearButton);
+        buttonsPanel.add(deleteButton);
+        buttonsPanel.add(defaultButton);
+
+        panel.add(buttonsPanel, BorderLayout.SOUTH);
+        return panel;
+    }
+
+    private void addBankAccountField(
+            JPanel panel,
+            GridBagConstraints gbc,
+            String labelText,
+            JTextField field,
+            int row
+    ) {
+        JLabel label = new JLabel(labelText);
+        label.setFont(new Font("Arial", Font.PLAIN, 14));
+
+        gbc.gridy = row;
+        panel.add(label, gbc);
+
+        gbc.gridy = row + 1;
+        field.setFont(new Font("Arial", Font.PLAIN, 16));
+        panel.add(field, gbc);
+    }
+
+    private void refreshBankAccountTable() {
+        if (bankAccountTableModel == null) {
+            return;
+        }
+
+        bankAccountTableModel.setRowCount(0);
+        loadedBankAccounts = new ArrayList<>();
+
+        Company company = getSelectedCompany();
+        BankAccountController bankAccountController = context.getBankAccountController();
+        if (company == null || bankAccountController == null) {
+            return;
+        }
+
+        try {
+            loadedBankAccounts = bankAccountController.buscarContasBancarias(company);
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+            return;
+        }
+
+        for (BankAccount account : loadedBankAccounts) {
+            bankAccountTableModel.addRow(new Object[]{
+                    account.getBanco(),
+                    account.getAgencia(),
+                    account.getNumeroConta(),
+                    account.getTipoConta(),
+                    moneyFormatter.format(account.getSaldo()),
+                    account.isContaPadrao() ? "Sim" : "Nao"
+            });
+        }
+    }
+
+    private void fillBankAccountFormFromSelection() {
+        BankAccount selectedAccount = getSelectedBankAccount();
+        if (selectedAccount == null) {
+            return;
+        }
+
+        bankNameField.setText(selectedAccount.getBanco());
+        agencyField.setText(selectedAccount.getAgencia());
+        accountNumberField.setText(selectedAccount.getNumeroConta());
+        accountTypeField.setText(selectedAccount.getTipoConta());
+        defaultAccountCheckBox.setSelected(selectedAccount.isContaPadrao());
+    }
+
+    private BankAccount getSelectedBankAccount() {
+        if (bankAccountTable == null) {
+            return null;
+        }
+
+        int selectedRow = bankAccountTable.getSelectedRow();
+        if (selectedRow < 0 || selectedRow >= loadedBankAccounts.size()) {
+            return null;
+        }
+
+        int modelRow = bankAccountTable.convertRowIndexToModel(selectedRow);
+        return loadedBankAccounts.get(modelRow);
+    }
+
+    private void saveBankAccount() {
+        Company company = getSelectedCompany();
+        BankAccountController bankAccountController = context.getBankAccountController();
+        if (company == null || bankAccountController == null) {
+            JOptionPane.showMessageDialog(this, "Empresa ou controller de conta nao disponivel");
+            return;
+        }
+
+        String banco = bankNameField.getText().trim();
+        String agencia = agencyField.getText().trim();
+        String numeroConta = accountNumberField.getText().trim();
+        String tipoConta = accountTypeField.getText().trim();
+        boolean contaPadrao = defaultAccountCheckBox.isSelected();
+        BankAccount selectedAccount = getSelectedBankAccount();
+
+        try {
+            if (selectedAccount == null) {
+                bankAccountController.cadastrarContaBancaria(
+                        company,
+                        banco,
+                        agencia,
+                        numeroConta,
+                        tipoConta,
+                        contaPadrao
+                );
+                JOptionPane.showMessageDialog(this, "Conta cadastrada com sucesso");
+            } else {
+                bankAccountController.atualizarContaBancaria(
+                        company,
+                        selectedAccount,
+                        banco,
+                        agencia,
+                        numeroConta,
+                        tipoConta,
+                        contaPadrao
+                );
+                JOptionPane.showMessageDialog(this, "Conta atualizada com sucesso");
+            }
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+            return;
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Nao foi possivel salvar a conta bancaria");
+            return;
+        }
+
+        refreshBankAccountTable();
+        clearBankAccountForm();
+    }
+
+    private void deleteSelectedBankAccount() {
+        BankAccount selectedAccount = getSelectedBankAccount();
+        if (selectedAccount == null) {
+            JOptionPane.showMessageDialog(this, "Selecione uma conta para remover");
+            return;
+        }
+
+        int confirmation = JOptionPane.showConfirmDialog(
+                this,
+                "Remover a conta selecionada?",
+                "Confirmar remocao",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (confirmation != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        try {
+            context.getBankAccountController().removerContaBancaria(getSelectedCompany(), selectedAccount);
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+            return;
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Nao foi possivel remover a conta. Verifique se existem movimentacoes vinculadas.");
+            return;
+        }
+
+        JOptionPane.showMessageDialog(this, "Conta removida com sucesso");
+        refreshBankAccountTable();
+        clearBankAccountForm();
+    }
+
+    private void defineSelectedBankAccountAsDefault() {
+        BankAccount selectedAccount = getSelectedBankAccount();
+        if (selectedAccount == null) {
+            JOptionPane.showMessageDialog(this, "Selecione uma conta para definir como padrao");
+            return;
+        }
+
+        try {
+            context.getBankAccountController().definirContaPadrao(getSelectedCompany(), selectedAccount);
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+            return;
+        }
+
+        JOptionPane.showMessageDialog(this, "Conta padrao atualizada");
+        refreshBankAccountTable();
+        clearBankAccountForm();
+    }
+
+    private void clearBankAccountForm() {
+        if (bankAccountTable != null) {
+            bankAccountTable.clearSelection();
+        }
+
+        bankNameField.setText("");
+        agencyField.setText("");
+        accountNumberField.setText("");
+        accountTypeField.setText("");
+        defaultAccountCheckBox.setSelected(false);
     }
 
     private JPanel createSummarySection(String title, DefaultListModel<String> model) {
@@ -295,6 +548,7 @@ public class MainFrame extends JFrame {
         DefaultListModel<String> model = new DefaultListModel<>();
         Company company = getSelectedCompany();
 
+        RecurrenceRuleService recurrenceRuleService = context.getRecurrenceRuleService();
         if (company == null || recurrenceRuleService == null) {
             model.addElement("Nenhuma empresa selecionada");
             return model;
@@ -320,6 +574,7 @@ public class MainFrame extends JFrame {
         DefaultListModel<String> model = new DefaultListModel<>();
         Company company = getSelectedCompany();
 
+        TransactionService transactionService = context.getTransactionService();
         if (company == null || transactionService == null) {
             model.addElement("Nenhuma empresa selecionada");
             return model;
@@ -342,6 +597,7 @@ public class MainFrame extends JFrame {
     private List<Transaction> loadTransactionsForChart() {
         Company company = getSelectedCompany();
 
+        TransactionService transactionService = context.getTransactionService();
         if (company == null || transactionService == null) {
             return List.of();
         }
@@ -454,5 +710,4 @@ public class MainFrame extends JFrame {
         }
         contentLayout.show(contentPanel, cardName);
     }
-
 }
