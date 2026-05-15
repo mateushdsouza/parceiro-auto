@@ -7,6 +7,7 @@ import br.com.parceiroauto.entity.Company;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -14,6 +15,8 @@ import java.util.List;
 import java.util.Locale;
 
 public class BankAccountPanel extends JPanel {
+    private static final int FORM_PANEL_WIDTH = 300;
+
     private final Company company;
     private final BankAccountController bankAccountController;
     private final Runnable dataChangedListener;
@@ -95,6 +98,7 @@ public class BankAccountPanel extends JPanel {
         accountTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         accountTable.setRowHeight(28);
         accountTable.getTableHeader().setReorderingAllowed(false);
+        configureTableColumns();
         accountTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 loadSelectedAccountIntoForm();
@@ -105,10 +109,23 @@ public class BankAccountPanel extends JPanel {
         return panel;
     }
 
+    private void configureTableColumns() {
+        accountTable.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
+        TableColumnModel columns = accountTable.getColumnModel();
+        columns.getColumn(0).setPreferredWidth(180);
+        columns.getColumn(1).setPreferredWidth(70);
+        columns.getColumn(1).setMaxWidth(90);
+        columns.getColumn(2).setPreferredWidth(130);
+        columns.getColumn(3).setPreferredWidth(110);
+        columns.getColumn(4).setPreferredWidth(120);
+        columns.getColumn(5).setPreferredWidth(70);
+        columns.getColumn(5).setMaxWidth(85);
+    }
+
     private JPanel createFormPanel() {
         JPanel panel = new JPanel(new BorderLayout(0, 14));
         panel.setBackground(Color.WHITE);
-        panel.setPreferredSize(new Dimension(340, 0));
+        panel.setPreferredSize(new Dimension(FORM_PANEL_WIDTH, 0));
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Color.LIGHT_GRAY),
                 new EmptyBorder(14, 14, 14, 14)

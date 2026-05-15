@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EmployeesPanel extends JPanel {
+    private static final int FORM_PANEL_WIDTH = 300;
+
     private final Company company;
     private final User loggedUser;
     private final UserCompanyRole currentRole;
@@ -133,7 +135,7 @@ public class EmployeesPanel extends JPanel {
     private JPanel createFormPanel() {
         JPanel panel = new JPanel(new BorderLayout(0, 14));
         panel.setBackground(Color.WHITE);
-        panel.setPreferredSize(new Dimension(340, 0));
+        panel.setPreferredSize(new Dimension(FORM_PANEL_WIDTH, 0));
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Color.LIGHT_GRAY),
                 new EmptyBorder(14, 14, 14, 14)

@@ -25,6 +25,8 @@ import java.util.List;
 
 public class TransactionsPanel extends JPanel {
     private static final String INVESTMENT_CATEGORY_NAME = "INVESTIMENTO";
+    private static final int SELECTION_PANEL_WIDTH = 290;
+    private static final int FORM_PANEL_WIDTH = 420;
 
     private final Company company;
     private final UserCompanyRole role;
@@ -113,7 +115,7 @@ public class TransactionsPanel extends JPanel {
     private JPanel createSelectionPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(Color.WHITE);
-        panel.setPreferredSize(new Dimension(330, 0));
+        panel.setPreferredSize(new Dimension(SELECTION_PANEL_WIDTH, 0));
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Color.LIGHT_GRAY),
                 new EmptyBorder(14, 14, 14, 14)
@@ -157,6 +159,9 @@ public class TransactionsPanel extends JPanel {
     }
 
     private JPanel createFormPanel() {
+        JPanel wrapper = new JPanel(new GridBagLayout());
+        wrapper.setOpaque(false);
+
         JPanel form = new JPanel(new GridBagLayout());
         form.setBackground(Color.WHITE);
         form.setBorder(BorderFactory.createCompoundBorder(
@@ -199,7 +204,18 @@ public class TransactionsPanel extends JPanel {
         buttonConstraints.fill = GridBagConstraints.HORIZONTAL;
         buttonConstraints.insets = new Insets(18, 0, 0, 0);
         form.add(buttons, buttonConstraints);
-        return form;
+
+        Dimension preferredSize = form.getPreferredSize();
+        form.setPreferredSize(new Dimension(FORM_PANEL_WIDTH, preferredSize.height));
+
+        GridBagConstraints wrapperConstraints = new GridBagConstraints();
+        wrapperConstraints.gridx = 0;
+        wrapperConstraints.gridy = 0;
+        wrapperConstraints.anchor = GridBagConstraints.NORTHWEST;
+        wrapperConstraints.weightx = 1;
+        wrapperConstraints.weighty = 1;
+        wrapper.add(form, wrapperConstraints);
+        return wrapper;
     }
 
     private int addField(JPanel panel, int row, String labelText, JComponent component) {

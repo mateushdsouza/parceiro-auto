@@ -20,7 +20,9 @@ import br.com.parceiroauto.service.TransactionService;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
@@ -38,6 +40,11 @@ import java.util.function.Function;
 
 public class ReportsPanel extends JPanel {
     private static final Object ALL_OPTION = "Todos";
+    private static final int FILTERS_PANEL_WIDTH = 300;
+    private static final Color INCOME_ROW_COLOR = new Color(232, 246, 237);
+    private static final Color EXPENSE_ROW_COLOR = new Color(253, 234, 234);
+    private static final Color INCOME_ARROW_COLOR = new Color(30, 132, 73);
+    private static final Color EXPENSE_ARROW_COLOR = new Color(192, 57, 43);
 
     private final Company company;
     private final UserCompanyRole role;
@@ -178,15 +185,32 @@ public class ReportsPanel extends JPanel {
         transactionTable.setRowHeight(28);
         transactionTable.getTableHeader().setReorderingAllowed(false);
         transactionTable.setAutoCreateRowSorter(true);
+        configureTableColumns();
 
         panel.add(new JScrollPane(transactionTable), BorderLayout.CENTER);
         return panel;
     }
 
+    private void configureTableColumns() {
+        transactionTable.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
+        TableColumnModel columns = transactionTable.getColumnModel();
+        columns.getColumn(0).setPreferredWidth(90);
+        columns.getColumn(1).setPreferredWidth(55);
+        columns.getColumn(1).setMaxWidth(65);
+        columns.getColumn(2).setPreferredWidth(220);
+        columns.getColumn(3).setPreferredWidth(110);
+        columns.getColumn(4).setPreferredWidth(90);
+        columns.getColumn(5).setPreferredWidth(130);
+        columns.getColumn(6).setPreferredWidth(130);
+        columns.getColumn(7).setPreferredWidth(70);
+        columns.getColumn(7).setMaxWidth(90);
+        columns.getColumn(8).setPreferredWidth(120);
+    }
+
     private JPanel createFiltersPanel() {
         JPanel panel = new JPanel(new BorderLayout(0, 14));
         panel.setBackground(Color.WHITE);
-        panel.setPreferredSize(new Dimension(340, 0));
+        panel.setPreferredSize(new Dimension(FILTERS_PANEL_WIDTH, 0));
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Color.LIGHT_GRAY),
                 new EmptyBorder(14, 14, 14, 14)
@@ -293,6 +317,8 @@ public class ReportsPanel extends JPanel {
 
         accountCombo.setRenderer(renderer);
         categoryCombo.setRenderer(renderer);
+
+        transactionTable.setDefaultRenderer(Object.class, new TransactionTableRenderer());
     }
 
     public void refreshData() {
@@ -771,6 +797,47 @@ public class ReportsPanel extends JPanel {
 
     private void showError(String message) {
         JOptionPane.showMessageDialog(this, message, "Erro", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private class TransactionTableRenderer extends DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(
+                JTable table,
+                Object value,
+                boolean isSelected,
+                boolean hasFocus,
+                int row,
+                int column
+        ) {
+            super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+            int modelRow = table.convertRowIndexToModel(row);
+            Object typeValue = table.getModel().getValueAt(modelRow, 1);
+            TransactionType type = typeValue instanceof TransactionType transactionType ? transactionType : null;
+
+            if (type != null && !isSelected) {
+                setBackground(type == TransactionType.ENTRADA ? INCOME_ROW_COLOR : EXPENSE_ROW_COLOR);
+                setForeground(Color.BLACK);
+            } else if (isSelected) {
+                setBackground(table.getSelectionBackground());
+                setForeground(table.getSelectionForeground());
+            } else {
+                setBackground(Color.WHITE);
+                setForeground(Color.BLACK);
+            }
+
+            if (column == 1 && type != null) {
+                setHorizontalAlignment(SwingConstants.CENTER);
+                setFont(getFont().deriveFont(Font.BOLD, 18f));
+                setText(type == TransactionType.ENTRADA ? "↓" : "↑");
+                setForeground(type == TransactionType.ENTRADA ? INCOME_ARROW_COLOR : EXPENSE_ARROW_COLOR);
+            } else {
+                setHorizontalAlignment(SwingConstants.LEFT);
+                setFont(getFont().deriveFont(Font.PLAIN, 12f));
+            }
+
+            return this;
+        }
     }
 
     private record ExportColumn(String title, Function<Transaction, Object> valueProvider) {

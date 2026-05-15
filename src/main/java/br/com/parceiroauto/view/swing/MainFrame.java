@@ -22,6 +22,7 @@ public class MainFrame extends JFrame {
     private static final String REPORTS_CARD = "reports";
     private static final String EMPLOYEES_CARD = "employees";
     private static final int SIDE_PANEL_ITEMS_LIMIT = 3;
+    private static final int HOME_SIDE_PANEL_WIDTH = 330;
 
     private final User user;
     private final UserCompany userCompany;
@@ -221,7 +222,7 @@ public class MainFrame extends JFrame {
         JPanel chartPanel = TransactionPieChartPanel.createPanel(loadTransactionsForChart());
 
         JPanel sidePanel = new JPanel(new GridLayout(2, 1, 0, 0));
-        sidePanel.setPreferredSize(new Dimension(360, 0));
+        sidePanel.setPreferredSize(new Dimension(HOME_SIDE_PANEL_WIDTH, 0));
         sidePanel.setBackground(Color.BLACK);
         sidePanel.add(createSummarySection("Proximas recorrentes", loadUpcomingRecurrences()));
         sidePanel.add(createSummarySection("Ultimas movimentacoes", loadLastTransactions()));
