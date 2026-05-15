@@ -15,16 +15,18 @@ public class UserService {
             throw new IllegalArgumentException("Login nao pode ser vazio");
         }
 
+        String normalizedLogin = login.trim();
+
         if (password == null || password.isBlank()) {
             throw new IllegalArgumentException("Senha nao pode ser vazia");
         }
 
-        User existingUser = userRepository.findByLogin(login);
+        User existingUser = userRepository.findByLogin(normalizedLogin);
         if (existingUser != null) {
             throw new IllegalArgumentException("Ja existe um usuario com esse login");
         }
 
-        User user = new User(login, password);
+        User user = new User(normalizedLogin, password);
         userRepository.save(user);
         return user;
     }
@@ -34,11 +36,13 @@ public class UserService {
             throw new IllegalArgumentException("Login nao pode ser vazio");
         }
 
+        String normalizedLogin = login.trim();
+
         if (password == null || password.isBlank()) {
             throw new IllegalArgumentException("Senha nao pode ser vazia");
         }
 
-        User user = userRepository.findByLogin(login);
+        User user = userRepository.findByLogin(normalizedLogin);
         if (user == null) {
             return null;
         }
@@ -55,6 +59,10 @@ public class UserService {
     }
 
     public User findByLogin(String login) {
-        return userRepository.findByLogin(login);
+        if (login == null || login.isBlank()) {
+            return null;
+        }
+
+        return userRepository.findByLogin(login.trim());
     }
 }

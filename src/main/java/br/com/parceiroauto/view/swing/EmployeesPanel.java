@@ -63,6 +63,11 @@ public class EmployeesPanel extends JPanel {
         setBackground(Color.WHITE);
         setBorder(new EmptyBorder(18, 18, 18, 18));
 
+        if (company == null || employeeController == null) {
+            add(createUnavailablePanel(), BorderLayout.CENTER);
+            return;
+        }
+
         if (!canManageEmployees()) {
             add(createAccessDeniedPanel(), BorderLayout.CENTER);
             return;
@@ -84,7 +89,7 @@ public class EmployeesPanel extends JPanel {
         JLabel title = new JLabel("Funcionarios");
         title.setFont(new Font("Arial", Font.BOLD, 26));
 
-        JLabel subtitle = new JLabel(company == null ? "Nenhuma empresa selecionada" : company.getNomeFantasia());
+        JLabel subtitle = new JLabel(company.getNomeFantasia());
         subtitle.setFont(new Font("Arial", Font.PLAIN, 14));
 
         JPanel labels = new JPanel(new GridLayout(2, 1));
@@ -109,7 +114,7 @@ public class EmployeesPanel extends JPanel {
     }
 
     private JPanel createListPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
+        JPanel panel = new JPanel(new BorderLayout(0, 12));
         panel.setOpaque(false);
 
         employeeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -156,8 +161,8 @@ public class EmployeesPanel extends JPanel {
         JPanel buttons = new JPanel(new GridLayout(1, 3, 8, 0));
         buttons.setOpaque(false);
         buttons.add(saveButton);
-        buttons.add(removeButton);
         buttons.add(clearButton);
+        buttons.add(removeButton);
 
         panel.add(buttons, BorderLayout.SOUTH);
         return panel;
@@ -185,6 +190,16 @@ public class EmployeesPanel extends JPanel {
         return constraints;
     }
 
+    private JPanel createUnavailablePanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(Color.WHITE);
+
+        JLabel label = new JLabel("Empresa ou controller de funcionario nao disponivel.");
+        label.setFont(new Font("Arial", Font.PLAIN, 22));
+        panel.add(label);
+        return panel;
+    }
+
     private JPanel createAccessDeniedPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(Color.WHITE);
@@ -203,39 +218,117 @@ public class EmployeesPanel extends JPanel {
         existingUserCheckBox.addActionListener(e -> passwordField.setEnabled(!existingUserCheckBox.isSelected()));
     }
 
-    private void loadEmployees() {
-        if (company == null || employeeController == null) {
-            return;
-        }
-
-        try {
-            loadedEmployees = employeeController.listarFuncionarios(company);
-            fillTable(loadedEmployees);
-        } catch (IllegalArgumentException ex) {
-            showError(ex.getMessage());
-        }
-    }
-
     private void filterEmployees() {
-        if (company == null || employeeController == null) {
-            return;
-        }
 
-        try {
-            loadedEmployees = employeeController.filtrarFuncionarios(company, filterField.getText(), null);
-            fillTable(loadedEmployees);
-        } catch (IllegalArgumentException ex) {
-            showError(ex.getMessage());
-        }
+        setLoading(true);
+
+        String filter = filterField.getText();
+
+        SwingWorker<List<UserCompany>, Void> worker =
+                new SwingWorker<>() {
+
+                    @Override
+                    protected List<UserCompany> doInBackground() {
+
+                        return employeeController.filtrarFuncionarios(
+                                company,
+                                filter,
+                                null
+                        );
+                    }
+
+                    @Override
+                    protected void done() {
+
+                        try {
+
+                            loadedEmployees = get();
+
+                            populateTable(loadedEmployees);
+
+                        } catch (Exception ex) {
+
+                            showError("Nao foi possivel filtrar os funcionarios.");
+
+                            ex.printStackTrace();
+
+                        } finally {
+
+                            setLoading(false);
+                        }
+                    }
+                };
+
+        worker.execute();
     }
 
-    private void fillTable(List<UserCompany> employees) {
+    private void populateTable(List<UserCompany> employees) {
+
         tableModel.setRowCount(0);
+
         for (UserCompany employee : employees) {
-            tableModel.addRow(new Object[]{employee.getUser().getLogin(), employee.getRole()});
+
+            tableModel.addRow(new Object[]{
+                    employee.getUser().getLogin(),
+                    employee.getRole()
+            });
         }
     }
 
+    private void setLoading(boolean loading) {
+
+        refreshButton.setEnabled(!loading);
+        filterButton.setEnabled(!loading);
+        saveButton.setEnabled(!loading);
+        clearButton.setEnabled(!loading);
+        removeButton.setEnabled(!loading);
+
+        employeeTable.setEnabled(!loading);
+
+        setCursor(
+                loading
+                        ? Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
+                        : Cursor.getDefaultCursor()
+        );
+    }
+
+    private void loadEmployees() {
+
+        setLoading(true);
+
+        SwingWorker<List<UserCompany>, Void> worker =
+                new SwingWorker<>() {
+
+                    @Override
+                    protected List<UserCompany> doInBackground() {
+
+                        return employeeController.listarFuncionarios(company);
+                    }
+
+                    @Override
+                    protected void done() {
+
+                        try {
+
+                            loadedEmployees = get();
+
+                            populateTable(loadedEmployees);
+
+                        } catch (Exception ex) {
+
+                            showError("Nao foi possivel carregar os funcionarios.");
+
+                            ex.printStackTrace();
+
+                        } finally {
+
+                            setLoading(false);
+                        }
+                    }
+                };
+
+        worker.execute();
+    }
     private void loadSelectedEmployeeIntoForm() {
         UserCompany selectedEmployee = getSelectedEmployee();
         if (selectedEmployee == null) {
@@ -255,16 +348,18 @@ public class EmployeesPanel extends JPanel {
     private void saveEmployee() {
         UserCompany selectedEmployee = getSelectedEmployee();
         UserCompanyRole selectedRole = (UserCompanyRole) roleCombo.getSelectedItem();
+        String login = loginField.getText().trim();
+        String password = new String(passwordField.getPassword());
 
         try {
             if (selectedEmployee == null) {
                 if (existingUserCheckBox.isSelected()) {
-                    employeeController.vincularUsuarioExistente(company, loginField.getText(), selectedRole);
+                    employeeController.vincularUsuarioExistente(company, login, selectedRole);
                 } else {
                     employeeController.cadastrarFuncionario(
                             company,
-                            loginField.getText(),
-                            new String(passwordField.getPassword()),
+                            login,
+                            password,
                             selectedRole
                     );
                 }
