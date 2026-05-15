@@ -270,29 +270,41 @@ public class MainFrame extends JFrame {
     private JPanel createSummarySection(String title, DefaultListModel<String> model) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
-        panel.setBorder(new EmptyBorder(18, 14, 18, 14));
+        panel.setBorder(new EmptyBorder(14, 14, 14, 14));
 
         JLabel label = new JLabel(title);
         label.setFont(new Font(UI_FONT, Font.BOLD, 20));
-        label.setBorder(new EmptyBorder(0, 0, 14, 0));
+        label.setBorder(new EmptyBorder(0, 0, 10, 0));
 
         JPanel itemsPanel = new JPanel();
         itemsPanel.setOpaque(false);
-        itemsPanel.setLayout(new GridLayout(Math.max(model.size(), 1), 1, 0, 8));
+        itemsPanel.setLayout(new BoxLayout(itemsPanel, BoxLayout.Y_AXIS));
 
         for (int i = 0; i < model.size(); i++) {
             JLabel itemLabel = new JLabel(model.get(i));
             itemLabel.setFont(new Font(UI_FONT, Font.PLAIN, 14));
             itemLabel.setVerticalAlignment(SwingConstants.TOP);
+            itemLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
             itemLabel.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(Color.LIGHT_GRAY),
-                    new EmptyBorder(8, 8, 8, 8)
+                    new EmptyBorder(6, 8, 6, 8)
             ));
             itemsPanel.add(itemLabel);
+            if (i < model.size() - 1) {
+                itemsPanel.add(Box.createVerticalStrut(8));
+            }
         }
 
+        JScrollPane scrollPane = new JScrollPane(itemsPanel);
+        scrollPane.setBorder(null);
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(12);
+
         panel.add(label, BorderLayout.NORTH);
-        panel.add(itemsPanel, BorderLayout.CENTER);
+        panel.add(scrollPane, BorderLayout.CENTER);
         return panel;
     }
 
@@ -427,20 +439,20 @@ public class MainFrame extends JFrame {
 
     private String formatRecurrenceDetails(RecurrenceRule rule, Transaction transaction, LocalDate nextExecution) {
         return "<html>"
-                + "<b>Proxima:</b> " + escapeHtml(formatDate(nextExecution)) + "<br>"
-                + "<b>Frequencia:</b> " + escapeHtml(String.valueOf(rule.getFrequencia())) + "<br>"
-                + formatTransactionRows(transaction)
+                + "<b>Proxima:</b> " + escapeHtml(formatDate(nextExecution))
+                + " | <b>Frequencia:</b> " + escapeHtml(String.valueOf(rule.getFrequencia())) + "<br>"
+                + formatCompactTransactionRows(transaction)
                 + "</html>";
     }
 
     private String formatTransactionDetails(LocalDate date, Transaction transaction) {
         return "<html>"
                 + "<b>Data:</b> " + escapeHtml(formatDate(date)) + "<br>"
-                + formatTransactionRows(transaction)
+                + formatCompactTransactionRows(transaction)
                 + "</html>";
     }
 
-    private String formatTransactionRows(Transaction transaction) {
+    private String formatCompactTransactionRows(Transaction transaction) {
         if (transaction == null) {
             return "movimentação não informada";
         }
@@ -448,15 +460,10 @@ public class MainFrame extends JFrame {
         String value = transaction.getValor() == null ? "sem valor" : moneyFormatter.format(transaction.getValor());
         TransactionCategory category = transaction.getTransactionCategory();
         String categoryName = category == null ? "sem categoria" : category.getName();
-        String bankAccount = transaction.getBankAccount() == null
-                ? "sem conta"
-                : transaction.getBankAccount().getBanco() + " - " + transaction.getBankAccount().getNumeroConta();
 
         return "<b>Descrição:</b> " + escapeHtml(transaction.getDescricao()) + "<br>"
-                + "<b>Tipo:</b> " + escapeHtml(String.valueOf(transaction.getTipo())) + "<br>"
-                + "<b>Forma:</b> " + escapeHtml(String.valueOf(transaction.getForma())) + "<br>"
-                + "<b>Categoria:</b> " + escapeHtml(categoryName) + "<br>"
-                + "<b>Conta:</b> " + escapeHtml(bankAccount) + "<br>"
+                + "<b>Tipo:</b> " + escapeHtml(String.valueOf(transaction.getTipo()))
+                + " | <b>Categoria:</b> " + escapeHtml(categoryName) + "<br>"
                 + "<b>Valor:</b> " + escapeHtml(value);
     }
 
