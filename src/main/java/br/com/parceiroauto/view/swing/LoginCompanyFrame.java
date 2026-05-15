@@ -1,76 +1,73 @@
 package br.com.parceiroauto.view.swing;
 
+import br.com.parceiroauto.confg.AppContext;
 import br.com.parceiroauto.controller.LoginCompanyController;
-import br.com.parceiroauto.controller.LoginController;
-import br.com.parceiroauto.controller.RegisterCompanyController;
-import br.com.parceiroauto.controller.RegisterController;
 import br.com.parceiroauto.entity.User;
 import br.com.parceiroauto.entity.UserCompany;
-import br.com.parceiroauto.service.RecurrenceRuleService;
-import br.com.parceiroauto.service.TransactionService;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
 import java.util.List;
 
 public class LoginCompanyFrame extends JFrame {
+    private static final String UI_FONT = "Segoe UI";
+
     private final User user;
-    private final LoginCompanyController controller;
-    private final RegisterCompanyController registerCompanyController;
-    private final TransactionService transactionService;
-    private final RecurrenceRuleService recurrenceRuleService;
-    private final LoginController loginController;
-    private final RegisterController registerController;
+    private final AppContext context;
 
-    public LoginCompanyFrame(
-            User user,
-            LoginCompanyController controller,
-            RegisterCompanyController registerCompanyController,
-            LoginController loginController,
-            RegisterController registerController
-    ) {
-        this( user, controller, registerCompanyController, loginController, registerController, null, null);
-    }
-
-    public LoginCompanyFrame(
-            User user,
-            LoginCompanyController controller,
-            RegisterCompanyController registerCompanyController,
-            LoginController loginController,
-            RegisterController registerController,
-            TransactionService transactionService,
-            RecurrenceRuleService recurrenceRuleService
-    ) {
+    public LoginCompanyFrame(User user, AppContext context) {
         this.user = user;
-        this.controller = controller;
-        this.registerCompanyController = registerCompanyController;
-        this.transactionService = transactionService;
-        this.recurrenceRuleService = recurrenceRuleService;
-        this.loginController = loginController;
-        this.registerController = registerController;
+        this.context = context;
+        LoginCompanyController controller = context.getLoginCompanyController();
 
-        setTitle("Selecionar Empresa");
+        setTitle("ParceiroAuto - Selecionar Empresa");
         setSize(420, 260);
         setLocationRelativeTo(null);
         setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(null);
+
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBorder(new EmptyBorder(24, 32, 24, 32));
+        formPanel.setBackground(Color.WHITE);
+        setContentPane(formPanel);
+
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.gridx = 0;
+        constraints.gridwidth = 2;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.weightx = 1;
 
         JLabel lblEmpresa = new JLabel("Selecione a empresa:");
-        lblEmpresa.setBounds(40, 30, 200, 25);
-        add(lblEmpresa);
+        lblEmpresa.setFont(new Font(UI_FONT, Font.BOLD, 13));
+        constraints.gridy = 0;
+        constraints.insets = new Insets(0, 0, 6, 0);
+        formPanel.add(lblEmpresa, constraints);
 
         JComboBox<UserCompany> comboEmpresas = new JComboBox<>();
-        comboEmpresas.setBounds(40, 60, 320, 30);
-        add(comboEmpresas);
+        constraints.gridy = 1;
+        constraints.insets = new Insets(0, 0, 20, 0);
+        formPanel.add(comboEmpresas, constraints);
 
-        List<UserCompany> empresas = controller.buscarEmpresasDoUsuario(user);
+        List<UserCompany> empresas;
+        try {
+            empresas = controller.buscarEmpresasDoUsuario(user);
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+            empresas = List.of();
+        }
 
         for (UserCompany userCompany : empresas) {
             comboEmpresas.addItem(userCompany);
         }
 
         JButton btnEntrar = new JButton("Entrar");
-        btnEntrar.setBounds(80, 130, 120, 30);
+        styleButton(btnEntrar);
+        btnEntrar.setEnabled(!empresas.isEmpty());
+
+        if (empresas.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nenhuma empresa cadastrada. Cadastre uma empresa para continuar.");
+        }
 
         btnEntrar.addActionListener(e -> {
             UserCompany selecionado = (UserCompany) comboEmpresas.getSelectedItem();
@@ -80,35 +77,33 @@ public class LoginCompanyFrame extends JFrame {
                 return;
             }
 
-            new MainFrame(user, selecionado, transactionService, recurrenceRuleService, loginController, registerController, controller, registerCompanyController);
+            new MainFrame(user, selecionado, context);
             dispose();
         });
 
-        add(btnEntrar);
-
-        // Botao Cadastrar
         JButton btnCadastrar = new JButton("Cadastrar");
-
-        btnCadastrar.setBounds(220, 130, 120, 30);
+        styleButton(btnCadastrar);
 
         btnCadastrar.addActionListener(e -> {
 
-            new RegisterCompanyFrame(
-                    user,
-                    registerCompanyController,
-                    controller,
-                    loginController,
-                    registerController,
-                    transactionService,
-                    recurrenceRuleService
-            );
+            new RegisterCompanyFrame(user, context);
 
             dispose();
         });
 
-        add(btnCadastrar);
-
+        JPanel buttonsPanel = new JPanel(new GridLayout(1, 2, 12, 0));
+        buttonsPanel.setOpaque(false);
+        buttonsPanel.add(btnEntrar);
+        buttonsPanel.add(btnCadastrar);
+        constraints.gridy = 2;
+        constraints.insets = new Insets(0, 0, 0, 0);
+        formPanel.add(buttonsPanel, constraints);
 
         setVisible(true);
+    }
+
+    private void styleButton(JButton button) {
+        button.setFont(new Font(UI_FONT, Font.BOLD, 13));
+        button.setFocusPainted(false);
     }
 }

@@ -1,79 +1,54 @@
 package br.com.parceiroauto.view.swing;
 
-import br.com.parceiroauto.controller.LoginCompanyController;
+import br.com.parceiroauto.confg.AppContext;
 import br.com.parceiroauto.controller.LoginController;
-import br.com.parceiroauto.controller.RegisterCompanyController;
-import br.com.parceiroauto.controller.RegisterController;
 import br.com.parceiroauto.entity.User;
-import br.com.parceiroauto.service.RecurrenceRuleService;
-import br.com.parceiroauto.service.TransactionService;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
 
 public class LoginFrame extends JFrame {
-    private final LoginController controller;
-    private final RegisterController registerController;
-    private final LoginCompanyController loginCompanyController;
-    private final RegisterCompanyController registerCompanyController;
-    private final TransactionService transactionService;
-    private final RecurrenceRuleService recurrenceRuleService;
+    private static final String UI_FONT = "Segoe UI";
 
-    public LoginFrame(
-            LoginController controller,
-            RegisterController registerController,
-            LoginCompanyController loginCompanyController,
-            RegisterCompanyController registerCompanyController
-    ) {
-        this(controller, registerController, loginCompanyController, registerCompanyController, null, null);
-    }
+    private final AppContext context;
 
-    public LoginFrame(
-            LoginController controller,
-            RegisterController registerController,
-            LoginCompanyController loginCompanyController,
-            RegisterCompanyController registerCompanyController,
-            TransactionService transactionService,
-            RecurrenceRuleService recurrenceRuleService
-    ) {
-        this.controller = controller;
-        this.registerController = registerController;
-        this.loginCompanyController = loginCompanyController;
-        this.registerCompanyController = registerCompanyController;
-        this.transactionService = transactionService;
-        this.recurrenceRuleService = recurrenceRuleService;
+    public LoginFrame(AppContext context) {
+        this.context = context;
+        LoginController controller = context.getLoginController();
 
-        setTitle("Login");
+        setTitle("ParceiroAuto - Login");
         setSize(420, 260);
         setLocationRelativeTo(null);
         setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        setLayout(null);
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBorder(new EmptyBorder(22, 32, 22, 32));
+        formPanel.setBackground(Color.WHITE);
+        setContentPane(formPanel);
 
-        // Login
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.insets = new Insets(6, 0, 6, 0);
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.weightx = 1;
+        constraints.gridx = 0;
+        constraints.gridwidth = 2;
+
         JLabel lblLogin = new JLabel("Digite seu login");
         JTextField txtLogin = new JTextField();
+        styleLabel(lblLogin);
+        addField(formPanel, constraints, lblLogin, 0);
+        addField(formPanel, constraints, txtLogin, 1);
 
-        lblLogin.setBounds(40, 30, 120, 25);
-        txtLogin.setBounds(40, 55, 320, 30);
-
-        add(lblLogin);
-        add(txtLogin);
-
-        // Senha
         JLabel lblPassword = new JLabel("Digite sua senha");
         JPasswordField txtPassword = new JPasswordField();
+        styleLabel(lblPassword);
+        addField(formPanel, constraints, lblPassword, 2);
+        addField(formPanel, constraints, txtPassword, 3);
 
-        lblPassword.setBounds(40, 100, 120, 25);
-        txtPassword.setBounds(40, 125, 320, 30);
-
-        add(lblPassword);
-        add(txtPassword);
-
-        // Botao Login
         JButton btnLogin = new JButton("Entrar");
-
-        btnLogin.setBounds(80, 180, 120, 30);
+        styleButton(btnLogin);
 
         btnLogin.addActionListener(e -> {
             String login = txtLogin.getText().trim();
@@ -117,15 +92,7 @@ public class LoginFrame extends JFrame {
                         "Bem-vindo " + user.getLogin()
                 );
 
-                new LoginCompanyFrame(
-                        user,
-                        loginCompanyController,
-                        registerCompanyController,
-                        controller,
-                        registerController,
-                        transactionService,
-                        recurrenceRuleService
-                );
+                new LoginCompanyFrame(user, context);
 
                 dispose();
             } else {
@@ -135,29 +102,39 @@ public class LoginFrame extends JFrame {
             }
         });
 
-        add(btnLogin);
-
-        // Botao Cadastrar
         JButton btnCadastrar = new JButton("Cadastrar");
-
-        btnCadastrar.setBounds(220, 180, 120, 30);
+        styleButton(btnCadastrar);
 
         btnCadastrar.addActionListener(e -> {
 
-            new RegisterFrame(
-                    registerController,
-                    controller,
-                    loginCompanyController,
-                    registerCompanyController,
-                    transactionService,
-                    recurrenceRuleService
-            );
+            new RegisterFrame(context);
 
             dispose();
         });
 
-        add(btnCadastrar);
+        JPanel buttonsPanel = new JPanel(new GridLayout(1, 2, 12, 0));
+        buttonsPanel.setOpaque(false);
+        buttonsPanel.add(btnLogin);
+        buttonsPanel.add(btnCadastrar);
+        constraints.gridy = 4;
+        constraints.insets = new Insets(18, 0, 0, 0);
+        formPanel.add(buttonsPanel, constraints);
 
         setVisible(true);
+    }
+
+    private void addField(JPanel panel, GridBagConstraints constraints, JComponent component, int row) {
+        constraints.gridy = row;
+        constraints.insets = row % 2 == 0 ? new Insets(6, 0, 0, 0) : new Insets(4, 0, 12, 0);
+        panel.add(component, constraints);
+    }
+
+    private void styleLabel(JLabel label) {
+        label.setFont(new Font(UI_FONT, Font.BOLD, 13));
+    }
+
+    private void styleButton(JButton button) {
+        button.setFont(new Font(UI_FONT, Font.BOLD, 13));
+        button.setFocusPainted(false);
     }
 }

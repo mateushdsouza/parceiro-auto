@@ -90,7 +90,8 @@ public class View {
         }
     }
 
-    private static User menuLogin(Scanner sc, UserService userService) {
+    private static User menuLogin( Scanner sc, UserService userService)
+    {
         while (true) {
             System.out.println();
             System.out.println("=== Login ===");

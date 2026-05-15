@@ -2,7 +2,7 @@ package br.com.parceiroauto.repository;
 
 import br.com.parceiroauto.entity.User;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
+import java.util.List;
 
 public class UserRepository {
     private EntityManager em;
@@ -25,14 +25,17 @@ public class UserRepository {
     }
 
     public User findByLogin(String login) {
-        try {
-            return em.createQuery(
-                    "SELECT u FROM User u WHERE u.login = :login", User.class)
-                    .setParameter("login", login)
-                    .getSingleResult();
-        } catch (NoResultException e) {
+        List<User> users = em.createQuery(
+                        "SELECT u FROM User u WHERE LOWER(u.login) = LOWER(:login)", User.class)
+                .setParameter("login", login.trim())
+                .setMaxResults(1)
+                .getResultList();
+
+        if (users.isEmpty()) {
             return null;
         }
+
+        return users.get(0);
     }
 
     public void update(User user) {

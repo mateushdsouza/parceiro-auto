@@ -33,9 +33,10 @@ public class UserCompanyRepository {
     public UserCompany findByUserAndCompany(User user, Company company) {
         try {
             return em.createQuery(
-                    "SELECT uc FROM UserCompany uc WHERE uc.user = :user AND uc.company = :company", UserCompany.class)
-                    .setParameter("user", user)
-                    .setParameter("company", company)
+                    "SELECT uc FROM UserCompany uc WHERE uc.user.id = :userId AND uc.company.id = :companyId",
+                    UserCompany.class)
+                    .setParameter("userId", user.getId())
+                    .setParameter("companyId", company.getId())
                     .getSingleResult();
         } catch (NoResultException e) {
             return null;
@@ -44,17 +45,17 @@ public class UserCompanyRepository {
 
     public List<UserCompany> findByUser(User user) {
         return em.createQuery(
-                        "SELECT uc FROM UserCompany uc WHERE uc.user = :user", UserCompany.class)
-                .setParameter("user", user)
+                        "SELECT uc FROM UserCompany uc WHERE uc.user.id = :userId", UserCompany.class)
+                .setParameter("userId", user.getId())
                 .getResultList();
     }
 
     public List<UserCompany> findByCompany(Company company) {
         return em.createQuery(
-                        "SELECT uc FROM UserCompany uc WHERE uc.company = :company",
+                        "SELECT uc FROM UserCompany uc WHERE uc.company.id = :companyId",
                         UserCompany.class
                 )
-                .setParameter("company", company)
+                .setParameter("companyId", company.getId())
                 .getResultList();
     }
 

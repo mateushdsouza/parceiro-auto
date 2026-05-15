@@ -93,6 +93,14 @@ public class RecurrenceRuleService {
         return calcularProximaExecucao(regra);
     }
 
+    public RecurrenceRule findByTransaction(Transaction transaction) {
+        if (transaction == null) {
+            throw new IllegalArgumentException("Movimentacao nao pode ser nula");
+        }
+
+        return recurrenceRuleRepository.findByTransaction(transaction);
+    }
+
     private void processPendingRecurrenceRule(RecurrenceRule regra, LocalDate hoje) {
         if (regra == null) {
             return;

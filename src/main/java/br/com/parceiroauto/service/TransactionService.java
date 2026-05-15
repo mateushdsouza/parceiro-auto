@@ -139,6 +139,28 @@ public class TransactionService {
             BigDecimal newValor,
             TransactionForm newForma
     ) {
+        return updateTransaction(
+                transaction,
+                newBankAccount,
+                newCategory,
+                newTipo,
+                newDescricao,
+                newValor,
+                newForma,
+                transaction == null ? null : transaction.getData()
+        );
+    }
+
+    public Transaction updateTransaction(
+            Transaction transaction,
+            BankAccount newBankAccount,
+            TransactionCategory newCategory,
+            TransactionType newTipo,
+            String newDescricao,
+            BigDecimal newValor,
+            TransactionForm newForma,
+            LocalDate newData
+    ) {
         if (transaction == null) {
             throw new IllegalArgumentException("Movimentacao nao pode ser nula");
         }
@@ -167,6 +189,10 @@ public class TransactionService {
             throw new IllegalArgumentException("Forma nao pode ser nula");
         }
 
+        if (newData == null) {
+            throw new IllegalArgumentException("Data nao pode ser nula");
+        }
+
         if (newCategory.getTipo() != newTipo) {
             throw new IllegalArgumentException("A categoria escolhida nao corresponde ao tipo da movimentacao");
         }
@@ -180,6 +206,7 @@ public class TransactionService {
         transaction.setDescricao(newDescricao.trim());
         transaction.setValor(newValor);
         transaction.setForma(newForma);
+        transaction.setData(newData);
         transactionRepository.update(transaction);
         return transaction;
     }
