@@ -29,6 +29,7 @@ public class MainFrame extends JFrame {
     private final CardLayout contentLayout;
     private final JPanel contentPanel;
     private JPanel homePanel;
+    private ReportsPanel reportsPanel;
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private final NumberFormat moneyFormatter = NumberFormat.getCurrencyInstance(
             new Locale.Builder().setLanguage("pt").setRegion("BR").build()
@@ -154,7 +155,8 @@ public class MainFrame extends JFrame {
         contentPanel.add(homePanel, HOME_CARD);
         contentPanel.add(createBankAccountPanel(), BANK_ACCOUNT_CARD);
         contentPanel.add(createTransactionsPanel(), TRANSACTIONS_CARD);
-        contentPanel.add(createPlaceholderPanel("Relatorios"), REPORTS_CARD);
+        reportsPanel = createReportsPanel();
+        contentPanel.add(reportsPanel, REPORTS_CARD);
         contentPanel.add(createEmployeesPanel(), EMPLOYEES_CARD);
 
         return contentPanel;
@@ -187,6 +189,16 @@ public class MainFrame extends JFrame {
                 userCompany == null ? null : userCompany.getRole(),
                 context.getEmployeeController(),
                 this::refreshHomePanel
+        );
+    }
+
+    private ReportsPanel createReportsPanel() {
+        return new ReportsPanel(
+                getSelectedCompany(),
+                userCompany == null ? null : userCompany.getRole(),
+                context.getBankAccountService(),
+                context.getTransactionCategoryService(),
+                context.getTransactionService()
         );
     }
 
@@ -411,6 +423,8 @@ public class MainFrame extends JFrame {
     private void showContent(String cardName) {
         if (HOME_CARD.equals(cardName)) {
             refreshHomePanel();
+        } else if (REPORTS_CARD.equals(cardName) && reportsPanel != null) {
+            reportsPanel.refreshData();
         }
         contentLayout.show(contentPanel, cardName);
     }
