@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EmployeesPanel extends JPanel {
+    private static final String UI_FONT = "Segoe UI";
     private static final int FORM_PANEL_WIDTH = 300;
 
     private final Company company;
@@ -22,7 +23,7 @@ public class EmployeesPanel extends JPanel {
     private final EmployeeController employeeController;
     private final Runnable dataChangedListener;
 
-    private final DefaultTableModel tableModel = new DefaultTableModel(new Object[]{"Login", "Funcao"}, 0) {
+    private final DefaultTableModel tableModel = new DefaultTableModel(new Object[]{"Login", "Função"}, 0) {
         @Override
         public boolean isCellEditable(int row, int column) {
             return false;
@@ -39,7 +40,7 @@ public class EmployeesPanel extends JPanel {
                     UserCompanyRole.VIEWER
             }
     );
-    private final JCheckBox existingUserCheckBox = new JCheckBox("Vincular usuario existente");
+    private final JCheckBox existingUserCheckBox = new JCheckBox("Vincular usuário existente");
     private final JButton saveButton = new JButton("Salvar");
     private final JButton clearButton = new JButton("Novo");
     private final JButton removeButton = new JButton("Remover");
@@ -80,7 +81,7 @@ public class EmployeesPanel extends JPanel {
         add(createFormPanel(), BorderLayout.EAST);
 
         configureActions();
-        loadEmployees();
+        loadEmployees(null);
         clearForm();
     }
 
@@ -88,11 +89,11 @@ public class EmployeesPanel extends JPanel {
         JPanel header = new JPanel(new BorderLayout(12, 0));
         header.setOpaque(false);
 
-        JLabel title = new JLabel("Funcionarios");
-        title.setFont(new Font("Arial", Font.BOLD, 26));
+        JLabel title = new JLabel("Funcionários");
+        title.setFont(new Font(UI_FONT, Font.BOLD, 26));
 
         JLabel subtitle = new JLabel(company.getNomeFantasia());
-        subtitle.setFont(new Font("Arial", Font.PLAIN, 14));
+        subtitle.setFont(new Font(UI_FONT, Font.PLAIN, 14));
 
         JPanel labels = new JPanel(new GridLayout(2, 1));
         labels.setOpaque(false);
@@ -121,6 +122,8 @@ public class EmployeesPanel extends JPanel {
 
         employeeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         employeeTable.setRowHeight(28);
+        employeeTable.setFont(new Font(UI_FONT, Font.PLAIN, 14));
+        employeeTable.getTableHeader().setFont(new Font(UI_FONT, Font.BOLD, 14));
         employeeTable.getTableHeader().setReorderingAllowed(false);
         employeeTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
@@ -141,8 +144,8 @@ public class EmployeesPanel extends JPanel {
                 new EmptyBorder(14, 14, 14, 14)
         ));
 
-        JLabel title = new JLabel("Dados do funcionario");
-        title.setFont(new Font("Arial", Font.BOLD, 18));
+        JLabel title = new JLabel("Dados do funcionário");
+        title.setFont(new Font(UI_FONT, Font.BOLD, 18));
         panel.add(title, BorderLayout.NORTH);
 
         JPanel fields = new JPanel(new GridBagLayout());
@@ -151,7 +154,7 @@ public class EmployeesPanel extends JPanel {
         int row = 0;
         row = addField(fields, row, "Login", loginField);
         row = addField(fields, row, "Senha", passwordField);
-        row = addField(fields, row, "Funcao", roleCombo);
+        row = addField(fields, row, "Função", roleCombo);
 
         existingUserCheckBox.setOpaque(false);
         GridBagConstraints checkConstraints = constraints(row, 1);
@@ -172,13 +175,13 @@ public class EmployeesPanel extends JPanel {
 
     private int addField(JPanel panel, int row, String labelText, JComponent component) {
         JLabel label = new JLabel(labelText);
-        label.setFont(new Font("Arial", Font.PLAIN, 13));
+        label.setFont(new Font(UI_FONT, Font.PLAIN, 13));
         panel.add(label, constraints(row, 0));
 
         GridBagConstraints fieldConstraints = constraints(row, 1);
         fieldConstraints.fill = GridBagConstraints.HORIZONTAL;
         fieldConstraints.weightx = 1;
-        component.setFont(new Font("Arial", Font.PLAIN, 16));
+        component.setFont(new Font(UI_FONT, Font.PLAIN, 16));
         panel.add(component, fieldConstraints);
         return row + 1;
     }
@@ -196,8 +199,8 @@ public class EmployeesPanel extends JPanel {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(Color.WHITE);
 
-        JLabel label = new JLabel("Empresa ou controller de funcionario nao disponivel.");
-        label.setFont(new Font("Arial", Font.PLAIN, 22));
+        JLabel label = new JLabel("Empresa ou serviço de funcionário não disponível.");
+        label.setFont(new Font(UI_FONT, Font.PLAIN, 22));
         panel.add(label);
         return panel;
     }
@@ -205,14 +208,14 @@ public class EmployeesPanel extends JPanel {
     private JPanel createAccessDeniedPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(Color.WHITE);
-        JLabel label = new JLabel("Voce nao pode gerenciar funcionarios com seu perfil.");
-        label.setFont(new Font("Arial", Font.PLAIN, 22));
+        JLabel label = new JLabel("Você não pode gerenciar funcionários com seu perfil.");
+        label.setFont(new Font(UI_FONT, Font.PLAIN, 22));
         panel.add(label);
         return panel;
     }
 
     private void configureActions() {
-        refreshButton.addActionListener(e -> loadEmployees());
+        refreshButton.addActionListener(e -> loadEmployees(null));
         filterButton.addActionListener(e -> filterEmployees());
         clearButton.addActionListener(e -> clearForm());
         saveButton.addActionListener(e -> saveEmployee());
@@ -250,7 +253,7 @@ public class EmployeesPanel extends JPanel {
 
                         } catch (Exception ex) {
 
-                            showError("Nao foi possivel filtrar os funcionarios.");
+                            showError("Não foi possível filtrar os funcionários.");
 
                             ex.printStackTrace();
 
@@ -267,6 +270,7 @@ public class EmployeesPanel extends JPanel {
     private void populateTable(List<UserCompany> employees) {
 
         tableModel.setRowCount(0);
+        employeeTable.clearSelection();
 
         for (UserCompany employee : employees) {
 
@@ -294,7 +298,7 @@ public class EmployeesPanel extends JPanel {
         );
     }
 
-    private void loadEmployees() {
+    private void loadEmployees(Runnable afterLoad) {
 
         setLoading(true);
 
@@ -315,10 +319,13 @@ public class EmployeesPanel extends JPanel {
                             loadedEmployees = get();
 
                             populateTable(loadedEmployees);
+                            if (afterLoad != null) {
+                                afterLoad.run();
+                            }
 
                         } catch (Exception ex) {
 
-                            showError("Nao foi possivel carregar os funcionarios.");
+                            showError("Não foi possível carregar os funcionários.");
 
                             ex.printStackTrace();
 
@@ -365,55 +372,52 @@ public class EmployeesPanel extends JPanel {
                             selectedRole
                     );
                 }
-                JOptionPane.showMessageDialog(this, "Funcionario cadastrado com sucesso.");
+                JOptionPane.showMessageDialog(this, "Funcionário cadastrado com sucesso.");
             } else {
                 employeeController.atualizarFuncao(company, selectedEmployee, loggedUser, selectedRole);
-                JOptionPane.showMessageDialog(this, "Funcao atualizada com sucesso.");
+                JOptionPane.showMessageDialog(this, "Função atualizada com sucesso.");
             }
         } catch (IllegalArgumentException ex) {
             showError(ex.getMessage());
             return;
         } catch (Exception ex) {
-            showError("Nao foi possivel salvar o funcionario.");
+            showError("Não foi possível salvar o funcionário.");
             return;
         }
 
-        loadEmployees();
         notifyDataChanged();
-        clearForm();
+        loadEmployees(this::clearForm);
     }
 
     private void removeEmployee() {
         UserCompany selectedEmployee = getSelectedEmployee();
         if (selectedEmployee == null) {
-            showError("Selecione um funcionario para remover.");
+            showError("Selecione um funcionário para remover.");
             return;
         }
 
-        int choice = JOptionPane.showConfirmDialog(
+        boolean confirmed = SwingDialogs.confirmYesNo(
                 this,
-                "Remover o funcionario selecionado?",
-                "Confirmar remocao",
-                JOptionPane.YES_NO_OPTION
+                "Remover o funcionário selecionado?",
+                "Confirmar remoção"
         );
-        if (choice != JOptionPane.YES_OPTION) {
+        if (!confirmed) {
             return;
         }
 
         try {
             employeeController.removerFuncionario(company, selectedEmployee, loggedUser);
-            JOptionPane.showMessageDialog(this, "Funcionario removido com sucesso.");
+            JOptionPane.showMessageDialog(this, "Funcionário removido com sucesso.");
         } catch (IllegalArgumentException ex) {
             showError(ex.getMessage());
             return;
         } catch (Exception ex) {
-            showError("Nao foi possivel remover o funcionario.");
+            showError("Não foi possível remover o funcionário.");
             return;
         }
 
-        loadEmployees();
         notifyDataChanged();
-        clearForm();
+        loadEmployees(this::clearForm);
     }
 
     private void clearForm() {

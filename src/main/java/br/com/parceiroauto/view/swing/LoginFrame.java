@@ -13,7 +13,7 @@ public class LoginFrame extends JFrame {
         this.context = context;
         LoginController controller = context.getLoginController();
 
-        setTitle("Login");
+        setTitle("ParceiroAuto - Login");
         setSize(420, 260);
         setLocationRelativeTo(null);
         setResizable(false);

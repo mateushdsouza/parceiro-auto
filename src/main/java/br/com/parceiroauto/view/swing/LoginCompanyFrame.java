@@ -17,7 +17,7 @@ public class LoginCompanyFrame extends JFrame {
         this.context = context;
         LoginCompanyController controller = context.getLoginCompanyController();
 
-        setTitle("Selecionar Empresa");
+        setTitle("ParceiroAuto - Selecionar Empresa");
         setSize(420, 260);
         setLocationRelativeTo(null);
         setResizable(false);

@@ -24,10 +24,12 @@ import br.com.parceiroauto.service.TransactionService;
 import br.com.parceiroauto.service.UserCompanyService;
 import br.com.parceiroauto.service.UserService;
 import br.com.parceiroauto.view.swing.LoginFrame;
+import br.com.parceiroauto.view.swing.SwingDialogs;
 import jakarta.persistence.EntityManager;
 
 public class Main {
     public static void main(String[] args) {
+        SwingDialogs.configurePortugueseDefaults();
 
         FlyWayconfg.migrate();
 

@@ -24,6 +24,7 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 
 public class TransactionsPanel extends JPanel {
+    private static final String UI_FONT = "Segoe UI";
     private static final String INVESTMENT_CATEGORY_NAME = "INVESTIMENTO";
     private static final int SELECTION_PANEL_WIDTH = 290;
     private static final int FORM_PANEL_WIDTH = 420;
@@ -48,7 +49,7 @@ public class TransactionsPanel extends JPanel {
     private final JButton saveButton = new JButton("Salvar");
     private final JButton removeButton = new JButton("Remover");
     private final JButton clearButton = new JButton("Novo");
-    private final JButton refreshButton = new JButton("Atualizar opcoes");
+    private final JButton refreshButton = new JButton("Atualizar opções");
     private final JButton createCategoryButton = new JButton("Nova categoria");
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -96,11 +97,11 @@ public class TransactionsPanel extends JPanel {
         JPanel header = new JPanel(new BorderLayout());
         header.setOpaque(false);
 
-        JLabel title = new JLabel("Movimentacoes");
-        title.setFont(new Font("Arial", Font.BOLD, 26));
+        JLabel title = new JLabel("Movimentações");
+        title.setFont(new Font(UI_FONT, Font.BOLD, 26));
 
         JLabel subtitle = new JLabel(company == null ? "Nenhuma empresa selecionada" : company.getNomeFantasia());
-        subtitle.setFont(new Font("Arial", Font.PLAIN, 14));
+        subtitle.setFont(new Font(UI_FONT, Font.PLAIN, 14));
 
         JPanel labels = new JPanel(new GridLayout(2, 1));
         labels.setOpaque(false);
@@ -122,10 +123,10 @@ public class TransactionsPanel extends JPanel {
         ));
 
         JLabel title = new JLabel("Editar ou remover");
-        title.setFont(new Font("Arial", Font.BOLD, 18));
+        title.setFont(new Font(UI_FONT, Font.BOLD, 18));
 
-        JLabel label = new JLabel("Movimentacao");
-        label.setFont(new Font("Arial", Font.PLAIN, 13));
+        JLabel label = new JLabel("Movimentação");
+        label.setFont(new Font(UI_FONT, Font.PLAIN, 13));
 
         JButton loadButton = new JButton("Carregar");
         loadButton.addActionListener(e -> loadSelectedTransaction());
@@ -178,7 +179,7 @@ public class TransactionsPanel extends JPanel {
         row = addField(form, row, "Conta", bankAccountCombo);
         row = addField(form, row, "Tipo", typeCombo);
         row = addField(form, row, "Data", dateField);
-        row = addField(form, row, "Descricao", descriptionField);
+        row = addField(form, row, "Descrição", descriptionField);
         row = addField(form, row, "Valor", valueField);
         row = addField(form, row, "Forma", formCombo);
         row = addField(form, row, "Categoria", categoryCombo);
@@ -220,7 +221,7 @@ public class TransactionsPanel extends JPanel {
 
     private int addField(JPanel panel, int row, String labelText, JComponent component) {
         JLabel label = new JLabel(labelText);
-        label.setFont(new Font("Arial", Font.PLAIN, 13));
+        label.setFont(new Font(UI_FONT, Font.PLAIN, 13));
 
         panel.add(label, constraints(row, 0));
 
@@ -244,8 +245,8 @@ public class TransactionsPanel extends JPanel {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(Color.WHITE);
 
-        JLabel label = new JLabel("Voce nao pode registrar movimentacoes com seu perfil.");
-        label.setFont(new Font("Arial", Font.PLAIN, 22));
+        JLabel label = new JLabel("Você não pode registrar movimentações com seu perfil.");
+        label.setFont(new Font(UI_FONT, Font.PLAIN, 22));
         panel.add(label);
         return panel;
     }
@@ -439,7 +440,7 @@ public class TransactionsPanel extends JPanel {
 
     private void saveTransaction() {
         if (bankAccountCombo.getItemCount() == 0) {
-            showError("Nao existem contas bancarias cadastradas para essa empresa.");
+            showError("Não existem contas bancárias cadastradas para essa empresa.");
             return;
         }
 
@@ -485,7 +486,7 @@ public class TransactionsPanel extends JPanel {
                     null
             );
 
-            JOptionPane.showMessageDialog(this, "Movimentacao salva com sucesso.");
+            JOptionPane.showMessageDialog(this, "Movimentação salva com sucesso.");
             loadFormOptions();
             loadTransactions();
             notifyDataChanged();
@@ -493,7 +494,7 @@ public class TransactionsPanel extends JPanel {
         } catch (IllegalArgumentException ex) {
             showError(ex.getMessage());
         } catch (Exception ex) {
-            showError("Nao foi possivel salvar a movimentacao.");
+            showError("Não foi possível salvar a movimentação.");
         }
     }
 
@@ -502,20 +503,19 @@ public class TransactionsPanel extends JPanel {
             return;
         }
 
-        int choice = JOptionPane.showConfirmDialog(
+        boolean confirmed = SwingDialogs.confirmYesNo(
                 this,
-                "Remover a movimentacao selecionada?",
-                "Confirmar remocao",
-                JOptionPane.YES_NO_OPTION
+                "Remover a movimentação selecionada?",
+                "Confirmar remoção"
         );
-        if (choice != JOptionPane.YES_OPTION) {
+        if (!confirmed) {
             return;
         }
 
         try {
             recurrenceRuleService.replaceRecurrenceRule(selectedTransaction, null, null, null);
             transactionService.deleteTransaction(selectedTransaction);
-            JOptionPane.showMessageDialog(this, "Movimentacao removida com sucesso.");
+            JOptionPane.showMessageDialog(this, "Movimentação removida com sucesso.");
             loadFormOptions();
             loadTransactions();
             notifyDataChanged();
@@ -523,7 +523,7 @@ public class TransactionsPanel extends JPanel {
         } catch (IllegalArgumentException ex) {
             showError(ex.getMessage());
         } catch (Exception ex) {
-            showError("Nao foi possivel remover a movimentacao.");
+            showError("Não foi possível remover a movimentação.");
         }
     }
 
@@ -566,7 +566,7 @@ public class TransactionsPanel extends JPanel {
             return category;
         }
 
-        throw new IllegalArgumentException("Categoria nao pode ser nula");
+        throw new IllegalArgumentException("Categoria não pode ser nula");
     }
 
     private TransactionCategory getOrCreateInvestmentCategory() {
@@ -577,7 +577,7 @@ public class TransactionsPanel extends JPanel {
             }
 
             if (category.getTipo() != TransactionType.SAIDA) {
-                throw new IllegalArgumentException("A categoria INVESTIMENTO ja existe, mas nao esta configurada como SAIDA.");
+                throw new IllegalArgumentException("A categoria INVESTIMENTO já existe, mas não está configurada como SAIDA.");
             }
 
             if (!category.isActive()) {
@@ -691,7 +691,7 @@ public class TransactionsPanel extends JPanel {
 
     private String formatTransactionOption(Transaction transaction) {
         String date = transaction.getData() == null ? "sem data" : transaction.getData().format(dateFormatter);
-        String description = transaction.getDescricao() == null ? "sem descricao" : transaction.getDescricao();
+        String description = transaction.getDescricao() == null ? "sem descrição" : transaction.getDescricao();
         String value = transaction.getValor() == null ? "sem valor" : transaction.getValor().toPlainString();
         return date + " | " + transaction.getTipo() + " | " + description + " | " + value;
     }

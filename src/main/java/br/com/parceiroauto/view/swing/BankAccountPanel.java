@@ -3,6 +3,7 @@ package br.com.parceiroauto.view.swing;
 import br.com.parceiroauto.controller.BankAccountController;
 import br.com.parceiroauto.entity.BankAccount;
 import br.com.parceiroauto.entity.Company;
+import br.com.parceiroauto.entity.UserCompanyRole;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -15,9 +16,11 @@ import java.util.List;
 import java.util.Locale;
 
 public class BankAccountPanel extends JPanel {
+    private static final String UI_FONT = "Segoe UI";
     private static final int FORM_PANEL_WIDTH = 300;
 
     private final Company company;
+    private final UserCompanyRole role;
     private final BankAccountController bankAccountController;
     private final Runnable dataChangedListener;
     private final NumberFormat moneyFormatter = NumberFormat.getCurrencyInstance(
@@ -25,7 +28,7 @@ public class BankAccountPanel extends JPanel {
     );
 
     private final DefaultTableModel tableModel = new DefaultTableModel(
-            new Object[]{"Banco", "Agencia", "Conta", "Tipo", "Saldo", "Padrao"},
+            new Object[]{"Banco", "Agência", "Conta", "Tipo", "Saldo", "Padrão"},
             0
     ) {
         @Override
@@ -38,18 +41,23 @@ public class BankAccountPanel extends JPanel {
     private final JTextField agencyField = new JTextField();
     private final JTextField accountNumberField = new JTextField();
     private final JTextField accountTypeField = new JTextField();
-    private final JCheckBox defaultAccountCheckBox = new JCheckBox("Conta padrao");
+    private final JCheckBox defaultAccountCheckBox = new JCheckBox("Conta padrão");
     private final JButton saveButton = new JButton("Salvar");
     private final JButton clearButton = new JButton("Novo");
     private final JButton deleteButton = new JButton("Remover");
-    private final JButton defaultButton = new JButton("Definir padrao");
+    private final JButton defaultButton = new JButton("Definir padrão");
     private final JButton refreshButton = new JButton("Atualizar");
 
     private List<BankAccount> loadedAccounts = new ArrayList<>();
 
-    public BankAccountPanel(Company company, BankAccountController bankAccountController, Runnable dataChangedListener
+    public BankAccountPanel(
+            Company company,
+            UserCompanyRole role,
+            BankAccountController bankAccountController,
+            Runnable dataChangedListener
     ) {
         this.company = company;
+        this.role = role;
         this.bankAccountController = bankAccountController;
         this.dataChangedListener = dataChangedListener;
 
@@ -59,6 +67,11 @@ public class BankAccountPanel extends JPanel {
 
         if (company == null || bankAccountController == null) {
             add(createUnavailablePanel(), BorderLayout.CENTER);
+            return;
+        }
+
+        if (!canManageBankAccounts()) {
+            add(createAccessDeniedPanel(), BorderLayout.CENTER);
             return;
         }
 
@@ -75,11 +88,11 @@ public class BankAccountPanel extends JPanel {
         JPanel header = new JPanel(new BorderLayout());
         header.setOpaque(false);
 
-        JLabel title = new JLabel("Contas bancarias");
-        title.setFont(new Font("Arial", Font.BOLD, 26));
+        JLabel title = new JLabel("Contas bancárias");
+        title.setFont(new Font(UI_FONT, Font.BOLD, 26));
 
         JLabel subtitle = new JLabel(company.getNomeFantasia());
-        subtitle.setFont(new Font("Arial", Font.PLAIN, 14));
+        subtitle.setFont(new Font(UI_FONT, Font.PLAIN, 14));
 
         JPanel labels = new JPanel(new GridLayout(2, 1));
         labels.setOpaque(false);
@@ -97,6 +110,8 @@ public class BankAccountPanel extends JPanel {
 
         accountTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         accountTable.setRowHeight(28);
+        accountTable.setFont(new Font(UI_FONT, Font.PLAIN, 14));
+        accountTable.getTableHeader().setFont(new Font(UI_FONT, Font.BOLD, 14));
         accountTable.getTableHeader().setReorderingAllowed(false);
         configureTableColumns();
         accountTable.getSelectionModel().addListSelectionListener(e -> {
@@ -132,7 +147,7 @@ public class BankAccountPanel extends JPanel {
         ));
 
         JLabel title = new JLabel("Dados da conta");
-        title.setFont(new Font("Arial", Font.BOLD, 18));
+        title.setFont(new Font(UI_FONT, Font.BOLD, 18));
         panel.add(title, BorderLayout.NORTH);
 
         JPanel fields = new JPanel(new GridBagLayout());
@@ -140,8 +155,8 @@ public class BankAccountPanel extends JPanel {
 
         int row = 0;
         row = addField(fields, row, "Banco", bankNameField);
-        row = addField(fields, row, "Agencia", agencyField);
-        row = addField(fields, row, "Numero da conta", accountNumberField);
+        row = addField(fields, row, "Agência", agencyField);
+        row = addField(fields, row, "Número da conta", accountNumberField);
         row = addField(fields, row, "Tipo da conta", accountTypeField);
 
         defaultAccountCheckBox.setOpaque(false);
@@ -164,14 +179,14 @@ public class BankAccountPanel extends JPanel {
 
     private int addField(JPanel panel, int row, String labelText, JTextField field) {
         JLabel label = new JLabel(labelText);
-        label.setFont(new Font("Arial", Font.PLAIN, 13));
+        label.setFont(new Font(UI_FONT, Font.PLAIN, 13));
 
         panel.add(label, constraints(row, 0));
 
         GridBagConstraints fieldConstraints = constraints(row, 1);
         fieldConstraints.fill = GridBagConstraints.HORIZONTAL;
         fieldConstraints.weightx = 1;
-        field.setFont(new Font("Arial", Font.PLAIN, 16));
+        field.setFont(new Font(UI_FONT, Font.PLAIN, 16));
         panel.add(field, fieldConstraints);
         return row + 1;
     }
@@ -189,8 +204,18 @@ public class BankAccountPanel extends JPanel {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(Color.WHITE);
 
-        JLabel label = new JLabel("Empresa ou controller de conta nao disponivel.");
-        label.setFont(new Font("Arial", Font.PLAIN, 22));
+        JLabel label = new JLabel("Empresa ou serviço de conta não disponível.");
+        label.setFont(new Font(UI_FONT, Font.PLAIN, 22));
+        panel.add(label);
+        return panel;
+    }
+
+    private JPanel createAccessDeniedPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(Color.WHITE);
+
+        JLabel label = new JLabel("Você não pode gerenciar contas bancárias com seu perfil.");
+        label.setFont(new Font(UI_FONT, Font.PLAIN, 22));
         panel.add(label);
         return panel;
     }
@@ -205,6 +230,7 @@ public class BankAccountPanel extends JPanel {
 
     private void loadAccounts() {
         tableModel.setRowCount(0);
+        accountTable.clearSelection();
         loadedAccounts = new ArrayList<>();
 
         try {
@@ -221,7 +247,7 @@ public class BankAccountPanel extends JPanel {
                     account.getNumeroConta(),
                     account.getTipoConta(),
                     moneyFormatter.format(account.getSaldo()),
-                    account.isContaPadrao() ? "Sim" : "Nao"
+                    account.isContaPadrao() ? "Sim" : "Não"
             });
         }
     }
@@ -274,7 +300,7 @@ public class BankAccountPanel extends JPanel {
             showError(ex.getMessage());
             return;
         } catch (Exception ex) {
-            showError("Nao foi possivel salvar a conta bancaria.");
+            showError("Não foi possível salvar a conta bancária.");
             return;
         }
 
@@ -290,13 +316,12 @@ public class BankAccountPanel extends JPanel {
             return;
         }
 
-        int choice = JOptionPane.showConfirmDialog(
+        boolean confirmed = SwingDialogs.confirmYesNo(
                 this,
                 "Remover a conta selecionada?",
-                "Confirmar remocao",
-                JOptionPane.YES_NO_OPTION
+                "Confirmar remoção"
         );
-        if (choice != JOptionPane.YES_OPTION) {
+        if (!confirmed) {
             return;
         }
 
@@ -307,7 +332,7 @@ public class BankAccountPanel extends JPanel {
             showError(ex.getMessage());
             return;
         } catch (Exception ex) {
-            showError("Nao foi possivel remover a conta. Verifique se existem movimentacoes vinculadas.");
+            showError("Não foi possível remover a conta. Verifique se existem movimentações vinculadas.");
             return;
         }
 
@@ -319,13 +344,13 @@ public class BankAccountPanel extends JPanel {
     private void defineDefaultAccount() {
         BankAccount selectedAccount = getSelectedAccount();
         if (selectedAccount == null) {
-            showError("Selecione uma conta para definir como padrao.");
+            showError("Selecione uma conta para definir como padrão.");
             return;
         }
 
         try {
             bankAccountController.definirContaPadrao(company, selectedAccount);
-            JOptionPane.showMessageDialog(this, "Conta padrao atualizada.");
+            JOptionPane.showMessageDialog(this, "Conta padrão atualizada.");
         } catch (IllegalArgumentException ex) {
             showError(ex.getMessage());
             return;
@@ -367,5 +392,9 @@ public class BankAccountPanel extends JPanel {
 
     private void showError(String message) {
         JOptionPane.showMessageDialog(this, message, "Erro", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private boolean canManageBankAccounts() {
+        return role == UserCompanyRole.OWNER || role == UserCompanyRole.MANAGER;
     }
 }

@@ -15,7 +15,7 @@ public class RegisterCompanyFrame extends JFrame {
         this.context = context;
         RegisterCompanyController registerCompanyController = context.getRegisterCompanyController();
 
-        setTitle("Cadastro de Empresa");
+        setTitle("ParceiroAuto - Cadastro de Empresa");
         setSize(420, 390);
         setLocationRelativeTo(null);
         setResizable(false);
@@ -29,7 +29,7 @@ public class RegisterCompanyFrame extends JFrame {
         add(lblCnpj);
         add(txtCnpj);
 
-        JLabel lblRazaoSocial = new JLabel("Digite a razao social");
+        JLabel lblRazaoSocial = new JLabel("Digite a razão social");
         JTextField txtRazaoSocial = new JTextField();
         lblRazaoSocial.setBounds(40, 100, 180, 25);
         txtRazaoSocial.setBounds(40, 125, 320, 30);

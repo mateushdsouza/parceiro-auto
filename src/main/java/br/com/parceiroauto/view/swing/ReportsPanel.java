@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.util.function.Function;
 
 public class ReportsPanel extends JPanel {
+    private static final String UI_FONT = "Segoe UI";
     private static final Object ALL_OPTION = "Todos";
     private static final int FILTERS_PANEL_WIDTH = 300;
     private static final Color INCOME_ROW_COLOR = new Color(232, 246, 237);
@@ -58,7 +59,7 @@ public class ReportsPanel extends JPanel {
     );
 
     private final DefaultTableModel tableModel = new DefaultTableModel(
-            new Object[]{"Data", "Tipo", "Descricao", "Valor", "Forma", "Categoria", "Banco", "Agencia", "Conta"},
+            new Object[]{"Data", "Tipo", "Descrição", "Valor", "Forma", "Categoria", "Banco", "Agência", "Conta"},
             0
     ) {
         @Override
@@ -85,12 +86,12 @@ public class ReportsPanel extends JPanel {
     private final JLabel balanceLabel = new JLabel();
     private final JCheckBox exportDateCheckBox = new JCheckBox("Data", true);
     private final JCheckBox exportTypeCheckBox = new JCheckBox("Tipo", true);
-    private final JCheckBox exportDescriptionCheckBox = new JCheckBox("Descricao", true);
+    private final JCheckBox exportDescriptionCheckBox = new JCheckBox("Descrição", true);
     private final JCheckBox exportValueCheckBox = new JCheckBox("Valor", true);
     private final JCheckBox exportFormCheckBox = new JCheckBox("Forma", true);
     private final JCheckBox exportCategoryCheckBox = new JCheckBox("Categoria", false);
     private final JCheckBox exportBankCheckBox = new JCheckBox("Banco", false);
-    private final JCheckBox exportAgencyCheckBox = new JCheckBox("Agencia", false);
+    private final JCheckBox exportAgencyCheckBox = new JCheckBox("Agência", false);
     private final JCheckBox exportAccountCheckBox = new JCheckBox("Conta", false);
 
     private List<Transaction> loadedTransactions = new ArrayList<>();
@@ -136,11 +137,11 @@ public class ReportsPanel extends JPanel {
         JPanel header = new JPanel(new BorderLayout(12, 0));
         header.setOpaque(false);
 
-        JLabel title = new JLabel("Relatorios");
-        title.setFont(new Font("Arial", Font.BOLD, 26));
+        JLabel title = new JLabel("Relatórios");
+        title.setFont(new Font(UI_FONT, Font.BOLD, 26));
 
         JLabel subtitle = new JLabel(company.getNomeFantasia());
-        subtitle.setFont(new Font("Arial", Font.PLAIN, 14));
+        subtitle.setFont(new Font(UI_FONT, Font.PLAIN, 14));
 
         JPanel labels = new JPanel(new GridLayout(2, 1));
         labels.setOpaque(false);
@@ -149,7 +150,7 @@ public class ReportsPanel extends JPanel {
 
         JPanel summary = new JPanel(new GridLayout(1, 4, 8, 0));
         summary.setOpaque(false);
-        summary.add(createSummaryItem("Movimentacoes", quantityLabel));
+        summary.add(createSummaryItem("Movimentações", quantityLabel));
         summary.add(createSummaryItem("Entradas", incomeLabel));
         summary.add(createSummaryItem("Saidas", expenseLabel));
         summary.add(createSummaryItem("Saldo geral", balanceLabel));
@@ -169,8 +170,8 @@ public class ReportsPanel extends JPanel {
         ));
 
         JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        valueLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        titleLabel.setFont(new Font(UI_FONT, Font.PLAIN, 12));
+        valueLabel.setFont(new Font(UI_FONT, Font.BOLD, 14));
 
         panel.add(titleLabel);
         panel.add(valueLabel);
@@ -183,6 +184,8 @@ public class ReportsPanel extends JPanel {
 
         transactionTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         transactionTable.setRowHeight(28);
+        transactionTable.setFont(new Font(UI_FONT, Font.PLAIN, 14));
+        transactionTable.getTableHeader().setFont(new Font(UI_FONT, Font.BOLD, 14));
         transactionTable.getTableHeader().setReorderingAllowed(false);
         transactionTable.setAutoCreateRowSorter(true);
         configureTableColumns();
@@ -217,7 +220,7 @@ public class ReportsPanel extends JPanel {
         ));
 
         JLabel title = new JLabel("Filtros");
-        title.setFont(new Font("Arial", Font.BOLD, 18));
+        title.setFont(new Font(UI_FONT, Font.BOLD, 18));
         panel.add(title, BorderLayout.NORTH);
 
         JPanel fields = new JPanel(new GridBagLayout());
@@ -230,7 +233,7 @@ public class ReportsPanel extends JPanel {
         row = addField(fields, row, "Forma", formCombo);
         row = addField(fields, row, "Data inicial", startDateField);
         row = addField(fields, row, "Data final", endDateField);
-        row = addField(fields, row, "Descricao", descriptionField);
+        row = addField(fields, row, "Descrição", descriptionField);
 
         panel.add(fields, BorderLayout.CENTER);
 
@@ -246,13 +249,13 @@ public class ReportsPanel extends JPanel {
 
     private int addField(JPanel panel, int row, String labelText, JComponent component) {
         JLabel label = new JLabel(labelText);
-        label.setFont(new Font("Arial", Font.PLAIN, 13));
+        label.setFont(new Font(UI_FONT, Font.PLAIN, 13));
         panel.add(label, constraints(row, 0));
 
         GridBagConstraints fieldConstraints = constraints(row, 1);
         fieldConstraints.fill = GridBagConstraints.HORIZONTAL;
         fieldConstraints.weightx = 1;
-        component.setFont(new Font("Arial", Font.PLAIN, 16));
+        component.setFont(new Font(UI_FONT, Font.PLAIN, 16));
         panel.add(component, fieldConstraints);
         return row + 1;
     }
@@ -270,8 +273,8 @@ public class ReportsPanel extends JPanel {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(Color.WHITE);
 
-        JLabel label = new JLabel("Empresa ou servicos de relatorio nao disponiveis.");
-        label.setFont(new Font("Arial", Font.PLAIN, 22));
+        JLabel label = new JLabel("Empresa ou serviços de relatório não disponíveis.");
+        label.setFont(new Font(UI_FONT, Font.PLAIN, 22));
         panel.add(label);
         return panel;
     }
@@ -280,8 +283,8 @@ public class ReportsPanel extends JPanel {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(Color.WHITE);
 
-        JLabel label = new JLabel("Voce nao pode acessar relatorios com seu perfil.");
-        label.setFont(new Font("Arial", Font.PLAIN, 22));
+        JLabel label = new JLabel("Você não pode acessar relatórios com seu perfil.");
+        label.setFont(new Font(UI_FONT, Font.PLAIN, 22));
         panel.add(label);
         return panel;
     }
@@ -329,7 +332,7 @@ public class ReportsPanel extends JPanel {
         } catch (IllegalArgumentException ex) {
             showError(ex.getMessage());
         } catch (Exception ex) {
-            showError("Nao foi possivel carregar os relatorios.");
+            showError("Não foi possível carregar os relatórios.");
         }
     }
 
@@ -390,7 +393,7 @@ public class ReportsPanel extends JPanel {
             LocalDate startDate = parseOptionalDate(startDateField.getText());
             LocalDate endDate = parseOptionalDate(endDateField.getText());
             if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
-                throw new IllegalArgumentException("Data inicial nao pode ser maior que a data final.");
+                throw new IllegalArgumentException("Data inicial não pode ser maior que a data final.");
             }
 
             String descriptionFilter = descriptionField.getText().trim().toLowerCase();
@@ -482,6 +485,7 @@ public class ReportsPanel extends JPanel {
         displayedTransactions = new ArrayList<>(transactions);
         exportButton.setEnabled(!displayedTransactions.isEmpty());
         tableModel.setRowCount(0);
+        transactionTable.clearSelection();
 
         for (Transaction transaction : transactions) {
             BankAccount account = transaction.getBankAccount();
@@ -538,7 +542,7 @@ public class ReportsPanel extends JPanel {
 
     private void exportDisplayedReport() {
         if (displayedTransactions.isEmpty()) {
-            showError("Nao existem movimentacoes para exportar.");
+            showError("Não existem movimentações para exportar.");
             return;
         }
 
@@ -548,12 +552,12 @@ public class ReportsPanel extends JPanel {
 
         List<ExportColumn> selectedColumns = getSelectedExportColumns();
         if (selectedColumns.isEmpty()) {
-            showError("Selecione pelo menos uma informacao para exportar.");
+            showError("Selecione pelo menos uma informação para exportar.");
             return;
         }
 
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Salvar relatorio");
+        fileChooser.setDialogTitle("Salvar relatório");
         fileChooser.setFileFilter(new FileNameExtensionFilter("Planilha Excel (*.xlsx)", "xlsx"));
         fileChooser.setSelectedFile(createAvailableReportFile());
 
@@ -570,9 +574,9 @@ public class ReportsPanel extends JPanel {
 
         try {
             exportTransactionsToExcel(selectedFile, displayedTransactions, selectedColumns);
-            JOptionPane.showMessageDialog(this, "Relatorio exportado com sucesso.");
+            JOptionPane.showMessageDialog(this, "Relatório exportado com sucesso.");
         } catch (IOException ex) {
-            showError("Nao foi possivel exportar o relatorio.");
+            showError("Não foi possível exportar o relatório.");
         }
     }
 
@@ -596,15 +600,11 @@ public class ReportsPanel extends JPanel {
             options.add(checkBox);
         }
 
-        int choice = JOptionPane.showConfirmDialog(
+        return SwingDialogs.confirmOkCancel(
                 this,
                 options,
-                "Informacoes para exportar",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.QUESTION_MESSAGE
+                "Informações para exportar"
         );
-
-        return choice == JOptionPane.OK_OPTION;
     }
 
     private File createAvailableReportFile() {
@@ -644,7 +644,7 @@ public class ReportsPanel extends JPanel {
             List<ExportColumn> selectedColumns
     ) throws IOException {
         try (Workbook workbook = new XSSFWorkbook()) {
-            Sheet sheet = workbook.createSheet("Movimentacoes");
+            Sheet sheet = workbook.createSheet("Movimentações");
 
             CellStyle headerStyle = workbook.createCellStyle();
             org.apache.poi.ss.usermodel.Font headerFont = workbook.createFont();
@@ -692,7 +692,7 @@ public class ReportsPanel extends JPanel {
         List<ExportColumn> columns = new ArrayList<>();
         addColumnIfSelected(columns, exportDateCheckBox, "Data", transaction -> formatDate(transaction.getData()));
         addColumnIfSelected(columns, exportTypeCheckBox, "Tipo", transaction -> transaction.getTipo());
-        addColumnIfSelected(columns, exportDescriptionCheckBox, "Descricao", Transaction::getDescricao);
+        addColumnIfSelected(columns, exportDescriptionCheckBox, "Descrição", Transaction::getDescricao);
         addColumnIfSelected(columns, exportValueCheckBox, "Valor", transaction -> transaction.getValor());
         addColumnIfSelected(columns, exportFormCheckBox, "Forma", transaction -> transaction.getForma());
         addColumnIfSelected(columns, exportCategoryCheckBox, "Categoria", transaction -> {
@@ -703,7 +703,7 @@ public class ReportsPanel extends JPanel {
             BankAccount account = transaction.getBankAccount();
             return account == null ? "sem banco" : account.getBanco();
         });
-        addColumnIfSelected(columns, exportAgencyCheckBox, "Agencia", transaction -> {
+        addColumnIfSelected(columns, exportAgencyCheckBox, "Agência", transaction -> {
             BankAccount account = transaction.getBankAccount();
             return account == null ? "" : account.getAgencia();
         });

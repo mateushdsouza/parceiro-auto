@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Locale;
 
 public class MainFrame extends JFrame {
+    private static final String APP_NAME = "ParceiroAuto";
+    private static final String UI_FONT = "Segoe UI";
     private static final String HOME_CARD = "home";
     private static final String BANK_ACCOUNT_CARD = "bankAccount";
     private static final String TRANSACTIONS_CARD = "transactions";
@@ -43,7 +45,7 @@ public class MainFrame extends JFrame {
         this.contentLayout = new CardLayout();
         this.contentPanel = new JPanel(contentLayout);
 
-        setTitle("Parceiro Auto");
+        setTitle(APP_NAME);
         setMinimumSize(new Dimension(900, 520));
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setLocationRelativeTo(null);
@@ -55,7 +57,7 @@ public class MainFrame extends JFrame {
         add(createContentPanel(), BorderLayout.CENTER);
         add(createUserInfoPanel(), BorderLayout.SOUTH);
 
-        showContent(HOME_CARD);
+        showContent(getInitialCard());
         setVisible(true);
     }
 
@@ -64,12 +66,12 @@ public class MainFrame extends JFrame {
         topMenu.setBackground(Color.BLACK);
         topMenu.setBorder(new EmptyBorder(18, 24, 0, 18));
 
-        JButton btnUserOptions = new JButton("opcoes do usuario");
+        JButton btnUserOptions = new JButton("OPÇÕES DO USUÁRIO");
 
         btnUserOptions.setOpaque(true);
         btnUserOptions.setBackground(Color.WHITE);
         btnUserOptions.setBorder(new EmptyBorder(0, 12, 0, 12));
-        btnUserOptions.setFont(new Font("Arial", Font.PLAIN, 26));
+        btnUserOptions.setFont(new Font(UI_FONT, Font.BOLD, 22));
 
         JPopupMenu popupMenu = createPopupMenu();
 
@@ -84,13 +86,23 @@ public class MainFrame extends JFrame {
 
         topMenu.add(btnUserOptions, BorderLayout.WEST);
 
-        JPanel buttonsPanel = new JPanel(new GridLayout(1, 5, 4, 0));
+        JPanel buttonsPanel = new JPanel(new GridLayout(1, 0, 4, 0));
         buttonsPanel.setBackground(Color.BLACK);
-        buttonsPanel.add(createMenuButton("home", HOME_CARD));
-        buttonsPanel.add(createMenuButton("<html>conta<br>bancaria</html>", BANK_ACCOUNT_CARD));
-        buttonsPanel.add(createMenuButton("movimentacoes", TRANSACTIONS_CARD));
-        buttonsPanel.add(createMenuButton("relatorios", REPORTS_CARD));
-        buttonsPanel.add(createMenuButton("funcionarios", EMPLOYEES_CARD));
+        if (canAccessHome()) {
+            buttonsPanel.add(createMenuButton(APP_NAME.toUpperCase(), HOME_CARD));
+        }
+        if (canManageBankAccounts()) {
+            buttonsPanel.add(createMenuButton("<html>CONTA<br>BANCÁRIA</html>", BANK_ACCOUNT_CARD));
+        }
+        if (canManageTransactions()) {
+            buttonsPanel.add(createMenuButton("MOVIMENTAÇÕES", TRANSACTIONS_CARD));
+        }
+        if (canAccessReports()) {
+            buttonsPanel.add(createMenuButton("RELATÓRIOS", REPORTS_CARD));
+        }
+        if (canManageEmployees()) {
+            buttonsPanel.add(createMenuButton("FUNCIONÁRIOS", EMPLOYEES_CARD));
+        }
 
         topMenu.add(buttonsPanel, BorderLayout.CENTER);
         return topMenu;
@@ -100,17 +112,17 @@ public class MainFrame extends JFrame {
 
         JPopupMenu popupMenu = new JPopupMenu();
 
-        JMenuItem logout = new JMenuItem("Logout");
+        JMenuItem logout = new JMenuItem("Sair");
         logout.setOpaque(true);
         logout.setBackground(Color.WHITE);
         logout.setBorder(new EmptyBorder(0, 12, 0, 12));
-        logout.setFont(new Font("Arial", Font.PLAIN, 26));
+        logout.setFont(new Font(UI_FONT, Font.PLAIN, 24));
 
         JMenuItem trocarEmpresa = new JMenuItem("Trocar empresa");
         trocarEmpresa.setOpaque(true);
         trocarEmpresa.setBackground(Color.WHITE);
         trocarEmpresa.setBorder(new EmptyBorder(0, 12, 0, 12));
-        trocarEmpresa.setFont(new Font("Arial", Font.PLAIN, 26));
+        trocarEmpresa.setFont(new Font(UI_FONT, Font.PLAIN, 24));
 
 
         popupMenu.add(trocarEmpresa);
@@ -142,7 +154,7 @@ public class MainFrame extends JFrame {
         button.setFocusPainted(false);
         button.setBackground(Color.WHITE);
         button.setForeground(Color.BLACK);
-        button.setFont(new Font("Arial", Font.PLAIN, 18));
+        button.setFont(new Font(UI_FONT, Font.BOLD, 16));
         button.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
         button.addActionListener(e -> showContent(cardName));
         return button;
@@ -152,13 +164,23 @@ public class MainFrame extends JFrame {
         contentPanel.setBackground(Color.BLACK);
         contentPanel.setBorder(new EmptyBorder(0, 24, 0, 18));
 
-        homePanel = createHomePanel();
-        contentPanel.add(homePanel, HOME_CARD);
-        contentPanel.add(createBankAccountPanel(), BANK_ACCOUNT_CARD);
-        contentPanel.add(createTransactionsPanel(), TRANSACTIONS_CARD);
-        reportsPanel = createReportsPanel();
-        contentPanel.add(reportsPanel, REPORTS_CARD);
-        contentPanel.add(createEmployeesPanel(), EMPLOYEES_CARD);
+        if (canAccessHome()) {
+            homePanel = createHomePanel();
+            contentPanel.add(homePanel, HOME_CARD);
+        }
+        if (canManageBankAccounts()) {
+            contentPanel.add(createBankAccountPanel(), BANK_ACCOUNT_CARD);
+        }
+        if (canManageTransactions()) {
+            contentPanel.add(createTransactionsPanel(), TRANSACTIONS_CARD);
+        }
+        if (canAccessReports()) {
+            reportsPanel = createReportsPanel();
+            contentPanel.add(reportsPanel, REPORTS_CARD);
+        }
+        if (canManageEmployees()) {
+            contentPanel.add(createEmployeesPanel(), EMPLOYEES_CARD);
+        }
 
         return contentPanel;
     }
@@ -178,6 +200,7 @@ public class MainFrame extends JFrame {
     private JPanel createBankAccountPanel() {
         return new BankAccountPanel(
                 getSelectedCompany(),
+                userCompany == null ? null : userCompany.getRole(),
                 context.getBankAccountController(),
                 this::refreshHomePanel
         );
@@ -216,7 +239,7 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createHomePanel() {
-        JPanel wrapper = new JPanel(new BorderLayout(10, 0));
+        JPanel wrapper = new JPanel(new BorderLayout(10, 12));
         wrapper.setBackground(Color.BLACK);
 
         JPanel chartPanel = TransactionPieChartPanel.createPanel(loadTransactionsForChart());
@@ -224,11 +247,23 @@ public class MainFrame extends JFrame {
         JPanel sidePanel = new JPanel(new GridLayout(2, 1, 0, 0));
         sidePanel.setPreferredSize(new Dimension(HOME_SIDE_PANEL_WIDTH, 0));
         sidePanel.setBackground(Color.BLACK);
-        sidePanel.add(createSummarySection("Proximas recorrentes", loadUpcomingRecurrences()));
-        sidePanel.add(createSummarySection("Ultimas movimentacoes", loadLastTransactions()));
+        sidePanel.add(createSummarySection("Próximas recorrentes", loadUpcomingRecurrences()));
+        sidePanel.add(createSummarySection("Últimas movimentações", loadLastTransactions()));
 
-        wrapper.add(chartPanel, BorderLayout.CENTER);
-        wrapper.add(sidePanel, BorderLayout.EAST);
+        JLabel brandLabel = new JLabel(APP_NAME);
+        brandLabel.setOpaque(true);
+        brandLabel.setBackground(Color.WHITE);
+        brandLabel.setForeground(Color.BLACK);
+        brandLabel.setFont(new Font(UI_FONT, Font.BOLD, 30));
+        brandLabel.setBorder(new EmptyBorder(10, 16, 10, 16));
+
+        JPanel content = new JPanel(new BorderLayout(10, 0));
+        content.setBackground(Color.BLACK);
+        content.add(chartPanel, BorderLayout.CENTER);
+        content.add(sidePanel, BorderLayout.EAST);
+
+        wrapper.add(brandLabel, BorderLayout.NORTH);
+        wrapper.add(content, BorderLayout.CENTER);
         return wrapper;
     }
 
@@ -238,7 +273,7 @@ public class MainFrame extends JFrame {
         panel.setBorder(new EmptyBorder(18, 14, 18, 14));
 
         JLabel label = new JLabel(title);
-        label.setFont(new Font("Arial", Font.BOLD, 20));
+        label.setFont(new Font(UI_FONT, Font.BOLD, 20));
         label.setBorder(new EmptyBorder(0, 0, 14, 0));
 
         JPanel itemsPanel = new JPanel();
@@ -247,7 +282,7 @@ public class MainFrame extends JFrame {
 
         for (int i = 0; i < model.size(); i++) {
             JLabel itemLabel = new JLabel(model.get(i));
-            itemLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+            itemLabel.setFont(new Font(UI_FONT, Font.PLAIN, 14));
             itemLabel.setVerticalAlignment(SwingConstants.TOP);
             itemLabel.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(Color.LIGHT_GRAY),
@@ -274,7 +309,7 @@ public class MainFrame extends JFrame {
         List<RecurrenceRule> rules = recurrenceRuleService.findUpcomingByCompany(company, SIDE_PANEL_ITEMS_LIMIT);
 
         if (rules.isEmpty()) {
-            model.addElement("Sem recorrencias futuras");
+            model.addElement("Sem recorrências futuras");
             return model;
         }
 
@@ -300,7 +335,7 @@ public class MainFrame extends JFrame {
         List<Transaction> transactions = transactionService.findLastByCompany(company, SIDE_PANEL_ITEMS_LIMIT);
 
         if (transactions.isEmpty()) {
-            model.addElement("Sem movimentacoes cadastradas");
+            model.addElement("Sem movimentações cadastradas");
             return model;
         }
 
@@ -330,6 +365,58 @@ public class MainFrame extends JFrame {
         return userCompany.getCompany();
     }
 
+    private UserCompanyRole getCurrentRole() {
+        return userCompany == null ? null : userCompany.getRole();
+    }
+
+    private String getInitialCard() {
+        if (canAccessHome()) {
+            return HOME_CARD;
+        }
+        if (canAccessReports()) {
+            return REPORTS_CARD;
+        }
+        if (canManageTransactions()) {
+            return TRANSACTIONS_CARD;
+        }
+        if (canManageBankAccounts()) {
+            return BANK_ACCOUNT_CARD;
+        }
+        if (canManageEmployees()) {
+            return EMPLOYEES_CARD;
+        }
+        return HOME_CARD;
+    }
+
+    private boolean canAccessHome() {
+        return getCurrentRole() == UserCompanyRole.OWNER
+                || getCurrentRole() == UserCompanyRole.MANAGER
+                || getCurrentRole() == UserCompanyRole.INVESTMENT_MANAGER;
+    }
+
+    private boolean canManageBankAccounts() {
+        return getCurrentRole() == UserCompanyRole.OWNER
+                || getCurrentRole() == UserCompanyRole.MANAGER;
+    }
+
+    private boolean canManageTransactions() {
+        return getCurrentRole() == UserCompanyRole.OWNER
+                || getCurrentRole() == UserCompanyRole.MANAGER
+                || getCurrentRole() == UserCompanyRole.INVESTMENT_MANAGER;
+    }
+
+    private boolean canAccessReports() {
+        return getCurrentRole() == UserCompanyRole.OWNER
+                || getCurrentRole() == UserCompanyRole.MANAGER
+                || getCurrentRole() == UserCompanyRole.INVESTMENT_MANAGER
+                || getCurrentRole() == UserCompanyRole.VIEWER;
+    }
+
+    private boolean canManageEmployees() {
+        return getCurrentRole() == UserCompanyRole.OWNER
+                || getCurrentRole() == UserCompanyRole.MANAGER;
+    }
+
     private String formatDate(LocalDate date) {
         if (date == null) {
             return "sem data";
@@ -355,7 +442,7 @@ public class MainFrame extends JFrame {
 
     private String formatTransactionRows(Transaction transaction) {
         if (transaction == null) {
-            return "movimentacao nao informada";
+            return "movimentação não informada";
         }
 
         String value = transaction.getValor() == null ? "sem valor" : moneyFormatter.format(transaction.getValor());
@@ -365,7 +452,7 @@ public class MainFrame extends JFrame {
                 ? "sem conta"
                 : transaction.getBankAccount().getBanco() + " - " + transaction.getBankAccount().getNumeroConta();
 
-        return "<b>Descricao:</b> " + escapeHtml(transaction.getDescricao()) + "<br>"
+        return "<b>Descrição:</b> " + escapeHtml(transaction.getDescricao()) + "<br>"
                 + "<b>Tipo:</b> " + escapeHtml(String.valueOf(transaction.getTipo())) + "<br>"
                 + "<b>Forma:</b> " + escapeHtml(String.valueOf(transaction.getForma())) + "<br>"
                 + "<b>Categoria:</b> " + escapeHtml(categoryName) + "<br>"
@@ -389,7 +476,7 @@ public class MainFrame extends JFrame {
         panel.setBackground(Color.WHITE);
 
         JLabel label = new JLabel(title);
-        label.setFont(new Font("Arial", Font.PLAIN, 32));
+        label.setFont(new Font(UI_FONT, Font.PLAIN, 32));
         panel.add(label);
 
         return panel;
@@ -404,7 +491,7 @@ public class MainFrame extends JFrame {
         label.setOpaque(true);
         label.setBackground(Color.WHITE);
         label.setForeground(Color.BLACK);
-        label.setFont(new Font("Arial", Font.PLAIN, 24));
+        label.setFont(new Font(UI_FONT, Font.PLAIN, 22));
         label.setBorder(new EmptyBorder(4, 18, 4, 18));
 
         panel.add(label, BorderLayout.CENTER);
@@ -413,20 +500,35 @@ public class MainFrame extends JFrame {
 
     private String buildUserInfoText() {
         if (user == null || userCompany == null) {
-            return "informacoes do usuario";
+            return "informações do usuário";
         }
 
         Company company = userCompany.getCompany();
-        String companyName = company == null ? "empresa nao informada" : company.getNomeFantasia();
-        return "usuario: " + user.getLogin() + " | empresa: " + companyName + " | perfil: " + userCompany.getRole();
+        String companyName = company == null ? "empresa não informada" : company.getNomeFantasia();
+        return "usuário: " + user.getLogin() + " | empresa: " + companyName + " | perfil: " + userCompany.getRole();
     }
 
     private void showContent(String cardName) {
+        if (!canAccessCard(cardName)) {
+            cardName = getInitialCard();
+        }
+
         if (HOME_CARD.equals(cardName)) {
             refreshHomePanel();
         } else if (REPORTS_CARD.equals(cardName) && reportsPanel != null) {
             reportsPanel.refreshData();
         }
         contentLayout.show(contentPanel, cardName);
+    }
+
+    private boolean canAccessCard(String cardName) {
+        return switch (cardName) {
+            case HOME_CARD -> canAccessHome();
+            case BANK_ACCOUNT_CARD -> canManageBankAccounts();
+            case TRANSACTIONS_CARD -> canManageTransactions();
+            case REPORTS_CARD -> canAccessReports();
+            case EMPLOYEES_CARD -> canManageEmployees();
+            default -> false;
+        };
     }
 }

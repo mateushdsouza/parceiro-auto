@@ -17,7 +17,7 @@ public class RegisterFrame extends JFrame {
         // CONFIGURACAO DA JANELA
         // =========================
 
-        setTitle("Cadastro");
+        setTitle("ParceiroAuto - Cadastro");
 
         setSize(420, 340);
 

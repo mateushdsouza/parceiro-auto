@@ -149,13 +149,13 @@ public final class TransactionPieChartPanel {
 
     private static PiePlot<String> configurePlot(JFreeChart chart, boolean empty) {
         chart.setBackgroundPaint(Color.WHITE);
-        chart.getTitle().setFont(new Font("Arial", Font.BOLD, 22));
+        chart.getTitle().setFont(new Font("Segoe UI", Font.BOLD, 22));
 
         @SuppressWarnings("unchecked")
         PiePlot<String> plot = (PiePlot<String>) chart.getPlot();
         plot.setBackgroundPaint(Color.WHITE);
         plot.setOutlineVisible(false);
-        plot.setLabelFont(new Font("Arial", Font.PLAIN, 13));
+        plot.setLabelFont(new Font("Segoe UI", Font.PLAIN, 13));
         plot.setLabelGenerator(new StandardPieSectionLabelGenerator(
                 "{0}: {1}",
                 MONEY_FORMATTER,
@@ -185,7 +185,7 @@ public final class TransactionPieChartPanel {
         button.setBackground(Color.WHITE);
         button.setFocusPainted(false);
         button.setHorizontalAlignment(SwingConstants.CENTER);
-        button.setFont(new Font("Arial", Font.PLAIN, 16));
+        button.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         return button;
     }
 
