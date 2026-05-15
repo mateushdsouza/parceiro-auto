@@ -1,5 +1,12 @@
 package br.com.parceiroauto.view.swing;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
 import br.com.parceiroauto.entity.BankAccount;
 import br.com.parceiroauto.entity.Company;
 import br.com.parceiroauto.entity.Transaction;
@@ -23,6 +30,11 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.function.Function;
 
 public class ReportsPanel extends JPanel {
     private static final Object ALL_OPTION = "Todos";
@@ -33,6 +45,7 @@ public class ReportsPanel extends JPanel {
     private final TransactionCategoryService transactionCategoryService;
     private final TransactionService transactionService;
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private final DateTimeFormatter fileDateFormatter = DateTimeFormatter.ofPattern("dd-MM-yy");
     private final NumberFormat moneyFormatter = NumberFormat.getCurrencyInstance(
             new Locale.Builder().setLanguage("pt").setRegion("BR").build()
     );
@@ -63,6 +76,15 @@ public class ReportsPanel extends JPanel {
     private final JLabel incomeLabel = new JLabel();
     private final JLabel expenseLabel = new JLabel();
     private final JLabel balanceLabel = new JLabel();
+    private final JCheckBox exportDateCheckBox = new JCheckBox("Data", true);
+    private final JCheckBox exportTypeCheckBox = new JCheckBox("Tipo", true);
+    private final JCheckBox exportDescriptionCheckBox = new JCheckBox("Descricao", true);
+    private final JCheckBox exportValueCheckBox = new JCheckBox("Valor", true);
+    private final JCheckBox exportFormCheckBox = new JCheckBox("Forma", true);
+    private final JCheckBox exportCategoryCheckBox = new JCheckBox("Categoria", false);
+    private final JCheckBox exportBankCheckBox = new JCheckBox("Banco", false);
+    private final JCheckBox exportAgencyCheckBox = new JCheckBox("Agencia", false);
+    private final JCheckBox exportAccountCheckBox = new JCheckBox("Conta", false);
 
     private List<Transaction> loadedTransactions = new ArrayList<>();
     private List<Transaction> displayedTransactions = new ArrayList<>();
@@ -494,13 +516,187 @@ public class ReportsPanel extends JPanel {
             return;
         }
 
-        // Gancho para implementar a exportacao com Apache POI.
-        JOptionPane.showMessageDialog(
+        if (!chooseExportColumns()) {
+            return;
+        }
+
+        List<ExportColumn> selectedColumns = getSelectedExportColumns();
+        if (selectedColumns.isEmpty()) {
+            showError("Selecione pelo menos uma informacao para exportar.");
+            return;
+        }
+
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Salvar relatorio");
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Planilha Excel (*.xlsx)", "xlsx"));
+        fileChooser.setSelectedFile(createAvailableReportFile());
+
+        int choice = fileChooser.showSaveDialog(this);
+        if (choice != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        File selectedFile = fileChooser.getSelectedFile();
+        if (!selectedFile.getName().toLowerCase().endsWith(".xlsx")) {
+            selectedFile = new File(selectedFile.getParentFile(), selectedFile.getName() + ".xlsx");
+        }
+        selectedFile = createAvailableFile(selectedFile);
+
+        try {
+            exportTransactionsToExcel(selectedFile, displayedTransactions, selectedColumns);
+            JOptionPane.showMessageDialog(this, "Relatorio exportado com sucesso.");
+        } catch (IOException ex) {
+            showError("Nao foi possivel exportar o relatorio.");
+        }
+    }
+
+    private boolean chooseExportColumns() {
+        JPanel options = new JPanel(new GridLayout(0, 2, 8, 6));
+        options.setBorder(new EmptyBorder(8, 8, 8, 8));
+
+        JCheckBox[] checkBoxes = {
+                exportDateCheckBox,
+                exportTypeCheckBox,
+                exportDescriptionCheckBox,
+                exportValueCheckBox,
+                exportFormCheckBox,
+                exportCategoryCheckBox,
+                exportBankCheckBox,
+                exportAgencyCheckBox,
+                exportAccountCheckBox
+        };
+
+        for (JCheckBox checkBox : checkBoxes) {
+            options.add(checkBox);
+        }
+
+        int choice = JOptionPane.showConfirmDialog(
                 this,
-                "Exportacao ainda nao implementada. O relatorio atual tem "
-                        + displayedTransactions.size()
-                        + " movimentacao(oes)."
+                options,
+                "Informacoes para exportar",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.QUESTION_MESSAGE
         );
+
+        return choice == JOptionPane.OK_OPTION;
+    }
+
+    private File createAvailableReportFile() {
+        String fileName = "relatorio-movimentacoes-" + LocalDate.now().format(fileDateFormatter) + ".xlsx";
+        return createAvailableFile(new File(fileName));
+    }
+
+    private File createAvailableFile(File file) {
+        if (!file.exists()) {
+            return file;
+        }
+
+        String fileName = file.getName();
+        String extension = "";
+        String baseName = fileName;
+        int extensionIndex = fileName.lastIndexOf('.');
+
+        if (extensionIndex > 0) {
+            baseName = fileName.substring(0, extensionIndex);
+            extension = fileName.substring(extensionIndex);
+        }
+
+        File parent = file.getParentFile();
+        int copyNumber = 2;
+        File candidate;
+        do {
+            candidate = new File(parent == null ? new File(".") : parent, baseName + "(" + copyNumber + ")" + extension);
+            copyNumber++;
+        } while (candidate.exists());
+
+        return candidate;
+    }
+
+    private void exportTransactionsToExcel(
+            File file,
+            List<Transaction> transactions,
+            List<ExportColumn> selectedColumns
+    ) throws IOException {
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Movimentacoes");
+
+            CellStyle headerStyle = workbook.createCellStyle();
+            org.apache.poi.ss.usermodel.Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+
+            Row header = sheet.createRow(0);
+            for (int columnIndex = 0; columnIndex < selectedColumns.size(); columnIndex++) {
+                Cell cell = header.createCell(columnIndex);
+                cell.setCellValue(selectedColumns.get(columnIndex).title());
+                cell.setCellStyle(headerStyle);
+            }
+
+            int rowIndex = 1;
+            for (Transaction transaction : transactions) {
+                Row row = sheet.createRow(rowIndex++);
+                for (int columnIndex = 0; columnIndex < selectedColumns.size(); columnIndex++) {
+                    Object value = selectedColumns.get(columnIndex).valueProvider().apply(transaction);
+                    Cell cell = row.createCell(columnIndex);
+                    writeCellValue(cell, value);
+                }
+            }
+
+            for (int columnIndex = 0; columnIndex < selectedColumns.size(); columnIndex++) {
+                sheet.autoSizeColumn(columnIndex);
+            }
+
+            try (FileOutputStream outputStream = new FileOutputStream(file)) {
+                workbook.write(outputStream);
+            }
+        }
+    }
+
+    private void writeCellValue(Cell cell, Object value) {
+        if (value instanceof BigDecimal decimal) {
+            cell.setCellValue(decimal.doubleValue());
+        } else if (value instanceof Number number) {
+            cell.setCellValue(number.doubleValue());
+        } else {
+            cell.setCellValue(value == null ? "" : String.valueOf(value));
+        }
+    }
+
+    private List<ExportColumn> getSelectedExportColumns() {
+        List<ExportColumn> columns = new ArrayList<>();
+        addColumnIfSelected(columns, exportDateCheckBox, "Data", transaction -> formatDate(transaction.getData()));
+        addColumnIfSelected(columns, exportTypeCheckBox, "Tipo", transaction -> transaction.getTipo());
+        addColumnIfSelected(columns, exportDescriptionCheckBox, "Descricao", Transaction::getDescricao);
+        addColumnIfSelected(columns, exportValueCheckBox, "Valor", transaction -> transaction.getValor());
+        addColumnIfSelected(columns, exportFormCheckBox, "Forma", transaction -> transaction.getForma());
+        addColumnIfSelected(columns, exportCategoryCheckBox, "Categoria", transaction -> {
+            TransactionCategory category = transaction.getTransactionCategory();
+            return category == null ? "sem categoria" : category.getName();
+        });
+        addColumnIfSelected(columns, exportBankCheckBox, "Banco", transaction -> {
+            BankAccount account = transaction.getBankAccount();
+            return account == null ? "sem banco" : account.getBanco();
+        });
+        addColumnIfSelected(columns, exportAgencyCheckBox, "Agencia", transaction -> {
+            BankAccount account = transaction.getBankAccount();
+            return account == null ? "" : account.getAgencia();
+        });
+        addColumnIfSelected(columns, exportAccountCheckBox, "Conta", transaction -> {
+            BankAccount account = transaction.getBankAccount();
+            return account == null ? "" : account.getNumeroConta();
+        });
+        return columns;
+    }
+
+    private void addColumnIfSelected(
+            List<ExportColumn> columns,
+            JCheckBox checkBox,
+            String title,
+            Function<Transaction, Object> valueProvider
+    ) {
+        if (checkBox.isSelected()) {
+            columns.add(new ExportColumn(title, valueProvider));
+        }
     }
 
     private LocalDate parseOptionalDate(String value) {
@@ -575,5 +771,8 @@ public class ReportsPanel extends JPanel {
 
     private void showError(String message) {
         JOptionPane.showMessageDialog(this, message, "Erro", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private record ExportColumn(String title, Function<Transaction, Object> valueProvider) {
     }
 }
