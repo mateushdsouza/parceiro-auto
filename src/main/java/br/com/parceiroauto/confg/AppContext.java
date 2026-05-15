@@ -1,6 +1,7 @@
 package br.com.parceiroauto.confg;
 
 import br.com.parceiroauto.controller.BankAccountController;
+import br.com.parceiroauto.controller.EmployeeController;
 import br.com.parceiroauto.controller.LoginCompanyController;
 import br.com.parceiroauto.controller.LoginController;
 import br.com.parceiroauto.controller.RegisterCompanyController;
@@ -16,6 +17,7 @@ public class AppContext {
     private final LoginCompanyController loginCompanyController;
     private final RegisterCompanyController registerCompanyController;
     private final BankAccountController bankAccountController;
+    private final EmployeeController employeeController;
     private final BankAccountService bankAccountService;
     private final TransactionCategoryService transactionCategoryService;
     private final TransactionService transactionService;
@@ -27,6 +29,7 @@ public class AppContext {
             LoginCompanyController loginCompanyController,
             RegisterCompanyController registerCompanyController,
             BankAccountController bankAccountController,
+            EmployeeController employeeController,
             BankAccountService bankAccountService,
             TransactionCategoryService transactionCategoryService,
             TransactionService transactionService,
@@ -37,6 +40,7 @@ public class AppContext {
         this.loginCompanyController = loginCompanyController;
         this.registerCompanyController = registerCompanyController;
         this.bankAccountController = bankAccountController;
+        this.employeeController = employeeController;
         this.bankAccountService = bankAccountService;
         this.transactionCategoryService = transactionCategoryService;
         this.transactionService = transactionService;
@@ -61,6 +65,10 @@ public class AppContext {
 
     public BankAccountController getBankAccountController() {
         return bankAccountController;
+    }
+
+    public EmployeeController getEmployeeController() {
+        return employeeController;
     }
 
     public BankAccountService getBankAccountService() {

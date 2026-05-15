@@ -4,6 +4,7 @@ import br.com.parceiroauto.confg.AppContext;
 import br.com.parceiroauto.confg.FlyWayconfg;
 import br.com.parceiroauto.confg.JPAUtil;
 import br.com.parceiroauto.controller.BankAccountController;
+import br.com.parceiroauto.controller.EmployeeController;
 import br.com.parceiroauto.controller.LoginCompanyController;
 import br.com.parceiroauto.controller.LoginController;
 import br.com.parceiroauto.controller.RegisterCompanyController;
@@ -53,6 +54,8 @@ public class Main {
         RegisterCompanyController registerCompanyController =
                 new RegisterCompanyController(companyService, userCompanyService);
 
+        EmployeeController employeeController = new EmployeeController(service, userCompanyService);
+
         BankAccountRepository bankAccountRepository = new BankAccountRepository(em);
         BankAccountService bankAccountService = new BankAccountService(bankAccountRepository);
         BankAccountController bankAccountController = new BankAccountController(bankAccountService);
@@ -77,6 +80,7 @@ public class Main {
                 loginCompanyController,
                 registerCompanyController,
                 bankAccountController,
+                employeeController,
                 bankAccountService,
                 transactionCategoryService,
                 transactionService,

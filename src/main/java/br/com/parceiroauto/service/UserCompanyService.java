@@ -54,6 +54,14 @@ public class UserCompanyService {
         return userCompanyRepository.findByUser(user);
     }
 
+    public List<UserCompany> findByCompany(Company company) {
+        if (company == null) {
+            throw new IllegalArgumentException("Empresa nao pode ser nula");
+        }
+
+        return userCompanyRepository.findByCompany(company);
+    }
+
     public UserCompany updateRole(User user, Company company, UserCompanyRole newRole) {
         if (user == null) {
             throw new IllegalArgumentException("Usuario nao pode ser nulo");
