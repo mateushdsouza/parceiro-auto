@@ -577,7 +577,7 @@ public class TransactionsPanel extends JPanel {
             }
 
             if (category.getTipo() != TransactionType.SAIDA) {
-                throw new IllegalArgumentException("A categoria INVESTIMENTO já existe, mas não está configurada como SAIDA.");
+                throw new IllegalArgumentException("A categoria INVESTIMENTO já existe, mas não está configurada como saída.");
             }
 
             if (!category.isActive()) {

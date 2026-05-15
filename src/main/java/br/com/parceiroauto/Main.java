@@ -27,7 +27,16 @@ import br.com.parceiroauto.view.swing.LoginFrame;
 import br.com.parceiroauto.view.swing.SwingDialogs;
 import jakarta.persistence.EntityManager;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 public class Main {
+    private static final LocalTime RECURRENCE_CRON_TIME = LocalTime.of(0, 5);
+
     public static void main(String[] args) {
         SwingDialogs.configurePortugueseDefaults();
 
@@ -89,7 +98,58 @@ public class Main {
                 recurrenceRuleService
         );
 
+        ScheduledExecutorService recurrenceCron = startDailyRecurrenceCron();
+        Runtime.getRuntime().addShutdownHook(new Thread(recurrenceCron::shutdownNow));
+
         new LoginFrame(context);
 
+    }
+
+    private static ScheduledExecutorService startDailyRecurrenceCron() {
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "recurrence-rule-cron");
+            thread.setDaemon(true);
+            return thread;
+        });
+
+        scheduler.scheduleAtFixedRate(
+                Main::processPendingRecurrences,
+                secondsUntilNextExecution(),
+                TimeUnit.DAYS.toSeconds(1),
+                TimeUnit.SECONDS
+        );
+
+        processPendingRecurrences();
+        return scheduler;
+    }
+
+    private static long secondsUntilNextExecution() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime nextExecution = now.toLocalDate().atTime(RECURRENCE_CRON_TIME);
+
+        if (!nextExecution.isAfter(now)) {
+            nextExecution = nextExecution.plusDays(1);
+        }
+
+        return Duration.between(now, nextExecution).toSeconds();
+    }
+
+    private static void processPendingRecurrences() {
+        EntityManager cronEntityManager = JPAUtil.getEntityManager();
+
+        try {
+            BankAccountRepository bankAccountRepository = new BankAccountRepository(cronEntityManager);
+            TransactionRepository transactionRepository = new TransactionRepository(cronEntityManager);
+            TransactionService transactionService = new TransactionService(transactionRepository, bankAccountRepository);
+            RecurrenceRuleRepository recurrenceRuleRepository = new RecurrenceRuleRepository(cronEntityManager);
+            RecurrenceRuleService recurrenceRuleService =
+                    new RecurrenceRuleService(recurrenceRuleRepository, transactionService);
+
+            recurrenceRuleService.processPendingRecurrenceRules();
+        } catch (Exception ex) {
+            System.err.println("Falha ao processar movimentacoes recorrentes: " + ex.getMessage());
+        } finally {
+            cronEntityManager.close();
+        }
     }
 }

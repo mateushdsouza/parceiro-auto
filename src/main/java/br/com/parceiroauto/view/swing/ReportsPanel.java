@@ -152,7 +152,7 @@ public class ReportsPanel extends JPanel {
         summary.setOpaque(false);
         summary.add(createSummaryItem("Movimentações", quantityLabel));
         summary.add(createSummaryItem("Entradas", incomeLabel));
-        summary.add(createSummaryItem("Saidas", expenseLabel));
+        summary.add(createSummaryItem("Saídas", expenseLabel));
         summary.add(createSummaryItem("Saldo geral", balanceLabel));
 
         header.add(labels, BorderLayout.WEST);

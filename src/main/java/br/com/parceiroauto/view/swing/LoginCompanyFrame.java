@@ -6,9 +6,13 @@ import br.com.parceiroauto.entity.User;
 import br.com.parceiroauto.entity.UserCompany;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
 import java.util.List;
 
 public class LoginCompanyFrame extends JFrame {
+    private static final String UI_FONT = "Segoe UI";
+
     private final User user;
     private final AppContext context;
 
@@ -22,15 +26,28 @@ public class LoginCompanyFrame extends JFrame {
         setLocationRelativeTo(null);
         setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(null);
+
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBorder(new EmptyBorder(24, 32, 24, 32));
+        formPanel.setBackground(Color.WHITE);
+        setContentPane(formPanel);
+
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.gridx = 0;
+        constraints.gridwidth = 2;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.weightx = 1;
 
         JLabel lblEmpresa = new JLabel("Selecione a empresa:");
-        lblEmpresa.setBounds(40, 30, 200, 25);
-        add(lblEmpresa);
+        lblEmpresa.setFont(new Font(UI_FONT, Font.BOLD, 13));
+        constraints.gridy = 0;
+        constraints.insets = new Insets(0, 0, 6, 0);
+        formPanel.add(lblEmpresa, constraints);
 
         JComboBox<UserCompany> comboEmpresas = new JComboBox<>();
-        comboEmpresas.setBounds(40, 60, 320, 30);
-        add(comboEmpresas);
+        constraints.gridy = 1;
+        constraints.insets = new Insets(0, 0, 20, 0);
+        formPanel.add(comboEmpresas, constraints);
 
         List<UserCompany> empresas;
         try {
@@ -45,7 +62,7 @@ public class LoginCompanyFrame extends JFrame {
         }
 
         JButton btnEntrar = new JButton("Entrar");
-        btnEntrar.setBounds(80, 130, 120, 30);
+        styleButton(btnEntrar);
         btnEntrar.setEnabled(!empresas.isEmpty());
 
         if (empresas.isEmpty()) {
@@ -64,12 +81,8 @@ public class LoginCompanyFrame extends JFrame {
             dispose();
         });
 
-        add(btnEntrar);
-
-        // Botao Cadastrar
         JButton btnCadastrar = new JButton("Cadastrar");
-
-        btnCadastrar.setBounds(220, 130, 120, 30);
+        styleButton(btnCadastrar);
 
         btnCadastrar.addActionListener(e -> {
 
@@ -78,9 +91,19 @@ public class LoginCompanyFrame extends JFrame {
             dispose();
         });
 
-        add(btnCadastrar);
-
+        JPanel buttonsPanel = new JPanel(new GridLayout(1, 2, 12, 0));
+        buttonsPanel.setOpaque(false);
+        buttonsPanel.add(btnEntrar);
+        buttonsPanel.add(btnCadastrar);
+        constraints.gridy = 2;
+        constraints.insets = new Insets(0, 0, 0, 0);
+        formPanel.add(buttonsPanel, constraints);
 
         setVisible(true);
+    }
+
+    private void styleButton(JButton button) {
+        button.setFont(new Font(UI_FONT, Font.BOLD, 13));
+        button.setFocusPainted(false);
     }
 }
