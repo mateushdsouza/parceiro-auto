@@ -5,6 +5,8 @@ import br.com.parceiroauto.entity.*;
 import br.com.parceiroauto.service.RecurrenceRuleService;
 import br.com.parceiroauto.service.TransactionService;
 import br.com.parceiroauto.view.swing.chart.TransactionPieChartPanel;
+import jiconfont.icons.elusive.Elusive;
+import jiconfont.swing.IconFontSwing;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -66,7 +68,12 @@ public class MainFrame extends JFrame {
         topMenu.setBackground(Color.BLACK);
         topMenu.setBorder(new EmptyBorder(18, 24, 0, 18));
 
+        IconFontSwing.register(Elusive.getIconFont());
+
         JButton btnUserOptions = new JButton("OPÇÕES DO USUÁRIO");
+        Icon icon = IconFontSwing.buildIcon(Elusive.USER, 15);
+        btnUserOptions.setIcon(icon);
+
 
         btnUserOptions.setOpaque(true);
         btnUserOptions.setBackground(Color.WHITE);
