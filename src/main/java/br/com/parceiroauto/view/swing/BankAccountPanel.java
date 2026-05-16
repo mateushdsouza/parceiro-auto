@@ -7,9 +7,11 @@ import br.com.parceiroauto.entity.UserCompanyRole;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
+import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +20,7 @@ import java.util.Locale;
 public class BankAccountPanel extends JPanel {
     private static final String UI_FONT = "Segoe UI";
     private static final int FORM_PANEL_WIDTH = 300;
+    private static final Color NEGATIVE_BALANCE_ROW_COLOR = new Color(253, 234, 234);
 
     private final Company company;
     private final UserCompanyRole role;
@@ -113,6 +116,7 @@ public class BankAccountPanel extends JPanel {
         accountTable.setFont(new Font(UI_FONT, Font.PLAIN, 14));
         accountTable.getTableHeader().setFont(new Font(UI_FONT, Font.BOLD, 14));
         accountTable.getTableHeader().setReorderingAllowed(false);
+        accountTable.setDefaultRenderer(Object.class, new BankAccountTableRenderer());
         configureTableColumns();
         accountTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
@@ -396,5 +400,43 @@ public class BankAccountPanel extends JPanel {
 
     private boolean canManageBankAccounts() {
         return role == UserCompanyRole.OWNER || role == UserCompanyRole.MANAGER;
+    }
+
+    private class BankAccountTableRenderer extends DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(
+                JTable table,
+                Object value,
+                boolean isSelected,
+                boolean hasFocus,
+                int row,
+                int column
+        ) {
+            super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+            BankAccount account = getAccountForTableRow(table, row);
+            BigDecimal balance = account == null || account.getSaldo() == null ? BigDecimal.ZERO : account.getSaldo();
+            if (!isSelected && balance.signum() < 0) {
+                setBackground(NEGATIVE_BALANCE_ROW_COLOR);
+                setForeground(Color.BLACK);
+            } else if (isSelected) {
+                setBackground(table.getSelectionBackground());
+                setForeground(table.getSelectionForeground());
+            } else {
+                setBackground(Color.WHITE);
+                setForeground(Color.BLACK);
+            }
+
+            return this;
+        }
+    }
+
+    private BankAccount getAccountForTableRow(JTable table, int row) {
+        int modelRow = table.convertRowIndexToModel(row);
+        if (modelRow < 0 || modelRow >= loadedAccounts.size()) {
+            return null;
+        }
+
+        return loadedAccounts.get(modelRow);
     }
 }
