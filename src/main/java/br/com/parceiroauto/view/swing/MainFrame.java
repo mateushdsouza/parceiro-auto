@@ -9,6 +9,7 @@ import br.com.parceiroauto.view.swing.chart.TransactionPieChartPanel;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -16,15 +17,16 @@ import java.util.List;
 import java.util.Locale;
 
 public class MainFrame extends JFrame {
-    private static final String APP_NAME = "ParceiroAuto";
     private static final String UI_FONT = "Segoe UI";
+    private static final String DASHBOARD_LABEL = "Dashboard";
     private static final String HOME_CARD = "home";
     private static final String BANK_ACCOUNT_CARD = "bankAccount";
     private static final String TRANSACTIONS_CARD = "transactions";
     private static final String REPORTS_CARD = "reports";
     private static final String EMPLOYEES_CARD = "employees";
     private static final int SIDE_PANEL_ITEMS_LIMIT = 3;
-    private static final int HOME_SIDE_PANEL_WIDTH = 330;
+    private static final int HOME_SIDE_PANEL_WIDTH = 380;
+    private static final Color USER_ICON_COLOR = new Color(35, 35, 35);
 
     private final User user;
     private final UserCompany userCompany;
@@ -33,6 +35,7 @@ public class MainFrame extends JFrame {
     private final JPanel contentPanel;
     private JPanel homePanel;
     private ReportsPanel reportsPanel;
+    private JLabel userInfoLabel;
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private final NumberFormat moneyFormatter = NumberFormat.getCurrencyInstance(
             new Locale.Builder().setLanguage("pt").setRegion("BR").build()
@@ -45,7 +48,7 @@ public class MainFrame extends JFrame {
         this.contentLayout = new CardLayout();
         this.contentPanel = new JPanel(contentLayout);
 
-        setTitle(APP_NAME);
+        setTitle(DASHBOARD_LABEL);
         setMinimumSize(new Dimension(900, 520));
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setLocationRelativeTo(null);
@@ -66,7 +69,9 @@ public class MainFrame extends JFrame {
         topMenu.setBackground(Color.BLACK);
         topMenu.setBorder(new EmptyBorder(18, 24, 0, 18));
 
-        JButton btnUserOptions = new JButton("OPÇÕES DO USUÁRIO");
+        JButton btnUserOptions = new JButton(getUserDisplayName());
+        btnUserOptions.setIcon(new UserIcon(22, USER_ICON_COLOR));
+        btnUserOptions.setIconTextGap(8);
 
         btnUserOptions.setOpaque(true);
         btnUserOptions.setBackground(Color.WHITE);
@@ -89,10 +94,10 @@ public class MainFrame extends JFrame {
         JPanel buttonsPanel = new JPanel(new GridLayout(1, 0, 4, 0));
         buttonsPanel.setBackground(Color.BLACK);
         if (canAccessHome()) {
-            buttonsPanel.add(createMenuButton(APP_NAME.toUpperCase(), HOME_CARD));
+            buttonsPanel.add(createMenuButton(DASHBOARD_LABEL.toUpperCase(), HOME_CARD));
         }
         if (canManageBankAccounts()) {
-            buttonsPanel.add(createMenuButton("<html>CONTA<br>BANCÁRIA</html>", BANK_ACCOUNT_CARD));
+            buttonsPanel.add(createMenuButton("CONTA BANCÁRIA", BANK_ACCOUNT_CARD));
         }
         if (canManageTransactions()) {
             buttonsPanel.add(createMenuButton("MOVIMENTAÇÕES", TRANSACTIONS_CARD));
@@ -227,6 +232,8 @@ public class MainFrame extends JFrame {
     }
 
     private void refreshHomePanel() {
+        refreshUserInfoPanel();
+
         if (homePanel == null) {
             return;
         }
@@ -250,7 +257,7 @@ public class MainFrame extends JFrame {
         sidePanel.add(createSummarySection("Próximas recorrentes", loadUpcomingRecurrences()));
         sidePanel.add(createSummarySection("Últimas movimentações", loadLastTransactions()));
 
-        JLabel brandLabel = new JLabel(APP_NAME);
+        JLabel brandLabel = new JLabel(DASHBOARD_LABEL);
         brandLabel.setOpaque(true);
         brandLabel.setBackground(Color.WHITE);
         brandLabel.setForeground(Color.BLACK);
@@ -281,12 +288,12 @@ public class MainFrame extends JFrame {
         itemsPanel.setLayout(new GridLayout(Math.max(model.size(), 1), 1, 0, 8));
 
         for (int i = 0; i < model.size(); i++) {
-            JLabel itemLabel = new JLabel(model.get(i));
-            itemLabel.setFont(new Font(UI_FONT, Font.PLAIN, 14));
-            itemLabel.setVerticalAlignment(SwingConstants.TOP);
+            JLabel itemLabel = new JLabel(constrainHtmlWidth(model.get(i), HOME_SIDE_PANEL_WIDTH - 60));
+            itemLabel.setFont(new Font(UI_FONT, Font.PLAIN, 13));
+            itemLabel.setVerticalAlignment(SwingConstants.CENTER);
             itemLabel.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(Color.LIGHT_GRAY),
-                    new EmptyBorder(8, 8, 8, 8)
+                    new EmptyBorder(10, 8, 10, 8)
             ));
             itemsPanel.add(itemLabel);
         }
@@ -426,17 +433,40 @@ public class MainFrame extends JFrame {
     }
 
     private String formatRecurrenceDetails(RecurrenceRule rule, Transaction transaction, LocalDate nextExecution) {
+        if (transaction == null) {
+            return "<html>"
+                    + "<b>Próxima:</b> " + escapeHtml(formatDate(nextExecution)) + "<br>"
+                    + "<b>Movimentação:</b> não informada"
+                    + "</html>";
+        }
+
+        String value = transaction.getValor() == null ? "sem valor" : moneyFormatter.format(transaction.getValor());
         return "<html>"
-                + "<b>Proxima:</b> " + escapeHtml(formatDate(nextExecution)) + "<br>"
-                + "<b>Frequencia:</b> " + escapeHtml(String.valueOf(rule.getFrequencia())) + "<br>"
-                + formatTransactionRows(transaction)
+                + "<b>Próxima:</b> " + escapeHtml(formatDate(nextExecution))
+                + " | <b>Freq.:</b> " + escapeHtml(String.valueOf(rule.getFrequencia())) + "<br>"
+                + "<b>Descrição:</b> " + escapeHtml(transaction.getDescricao()) + "<br>"
+                + "<b>Tipo:</b> " + escapeHtml(String.valueOf(transaction.getTipo()))
+                + " | <b>Valor:</b> " + escapeHtml(value)
                 + "</html>";
     }
 
     private String formatTransactionDetails(LocalDate date, Transaction transaction) {
+        if (transaction == null) {
+            return "<html>"
+                    + "<b>Data:</b> " + escapeHtml(formatDate(date)) + "<br>"
+                    + "<b>Movimentação:</b> não informada"
+                    + "</html>";
+        }
+
+        String value = transaction.getValor() == null ? "sem valor" : moneyFormatter.format(transaction.getValor());
+        TransactionCategory category = transaction.getTransactionCategory();
+        String categoryName = category == null ? "sem categoria" : category.getName();
         return "<html>"
                 + "<b>Data:</b> " + escapeHtml(formatDate(date)) + "<br>"
-                + formatTransactionRows(transaction)
+                + "<b>Descrição:</b> " + escapeHtml(transaction.getDescricao()) + "<br>"
+                + "<b>Tipo:</b> " + escapeHtml(String.valueOf(transaction.getTipo()))
+                + " | <b>Valor:</b> " + escapeHtml(value)
+                + " | <b>Cat.:</b> " + escapeHtml(categoryName)
                 + "</html>";
     }
 
@@ -487,25 +517,109 @@ public class MainFrame extends JFrame {
         panel.setBackground(Color.BLACK);
         panel.setBorder(new EmptyBorder(0, 24, 18, 18));
 
-        JLabel label = new JLabel(buildUserInfoText());
-        label.setOpaque(true);
-        label.setBackground(Color.WHITE);
-        label.setForeground(Color.BLACK);
-        label.setFont(new Font(UI_FONT, Font.PLAIN, 22));
-        label.setBorder(new EmptyBorder(4, 18, 4, 18));
+        userInfoLabel = new JLabel(buildUserInfoText());
+        userInfoLabel.setOpaque(true);
+        userInfoLabel.setBackground(Color.WHITE);
+        userInfoLabel.setForeground(Color.BLACK);
+        userInfoLabel.setFont(new Font(UI_FONT, Font.PLAIN, 22));
+        userInfoLabel.setBorder(new EmptyBorder(4, 18, 4, 18));
 
-        panel.add(label, BorderLayout.CENTER);
+        panel.add(userInfoLabel, BorderLayout.CENTER);
         return panel;
+    }
+
+    private void refreshUserInfoPanel() {
+        if (userInfoLabel != null) {
+            userInfoLabel.setText(buildUserInfoText());
+        }
     }
 
     private String buildUserInfoText() {
         if (user == null || userCompany == null) {
-            return "informações do usuário";
+            return "empresa: não informada | perfil: não informado | saldo total: " + formatMoney(BigDecimal.ZERO);
         }
 
         Company company = userCompany.getCompany();
         String companyName = company == null ? "empresa não informada" : company.getNomeFantasia();
-        return "usuário: " + user.getLogin() + " | empresa: " + companyName + " | perfil: " + userCompany.getRole();
+        return "empresa: " + companyName
+                + " | perfil: " + userCompany.getRole()
+                + " | saldo total: " + formatMoney(calculateCompanyBalance(company));
+    }
+
+    private String getUserDisplayName() {
+        if (user == null || user.getLogin() == null || user.getLogin().isBlank()) {
+            return "USUÁRIO";
+        }
+
+        return user.getLogin();
+    }
+
+    private BigDecimal calculateCompanyBalance(Company company) {
+        if (company == null || context.getBankAccountService() == null) {
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal total = BigDecimal.ZERO;
+        try {
+            for (BankAccount account : context.getBankAccountService().findByCompany(company)) {
+                total = total.add(account.getSaldo() == null ? BigDecimal.ZERO : account.getSaldo());
+            }
+        } catch (IllegalArgumentException ex) {
+            return BigDecimal.ZERO;
+        }
+        return total;
+    }
+
+    private String formatMoney(BigDecimal value) {
+        return moneyFormatter.format(value == null ? BigDecimal.ZERO : value);
+    }
+
+    private String constrainHtmlWidth(String html, int width) {
+        if (html == null || !html.startsWith("<html>")) {
+            return html;
+        }
+
+        return html.replaceFirst("<html>", "<html><div style='width:" + width + "px;'>")
+                .replaceFirst("</html>$", "</div></html>");
+    }
+
+    private static class UserIcon implements Icon {
+        private final int size;
+        private final Color color;
+
+        private UserIcon(int size, Color color) {
+            this.size = size;
+            this.color = color;
+        }
+
+        @Override
+        public int getIconWidth() {
+            return size;
+        }
+
+        @Override
+        public int getIconHeight() {
+            return size;
+        }
+
+        @Override
+        public void paintIcon(Component component, Graphics graphics, int x, int y) {
+            Graphics2D g2 = (Graphics2D) graphics.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(color);
+
+            int headSize = Math.round(size * 0.34f);
+            int headX = x + (size - headSize) / 2;
+            int headY = y + Math.round(size * 0.12f);
+            g2.fillOval(headX, headY, headSize, headSize);
+
+            int bodyWidth = Math.round(size * 0.72f);
+            int bodyHeight = Math.round(size * 0.42f);
+            int bodyX = x + (size - bodyWidth) / 2;
+            int bodyY = y + Math.round(size * 0.52f);
+            g2.fillRoundRect(bodyX, bodyY, bodyWidth, bodyHeight, bodyHeight, bodyHeight);
+            g2.dispose();
+        }
     }
 
     private void showContent(String cardName) {
