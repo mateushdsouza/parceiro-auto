@@ -1,7 +1,7 @@
-package br.com.parceiroauto.service;
+package br.com.parceiroauto.model.service;
 
-import br.com.parceiroauto.entity.Company;
-import br.com.parceiroauto.repository.CompanyRepository;
+import br.com.parceiroauto.model.entity.Company;
+import br.com.parceiroauto.model.repository.CompanyRepository;
 import br.com.parceiroauto.util.ValidadorCNPJ;
 
 public class CompanyService {

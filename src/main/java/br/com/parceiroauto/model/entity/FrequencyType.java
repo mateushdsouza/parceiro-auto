@@ -1,4 +1,4 @@
-package br.com.parceiroauto.entity;
+package br.com.parceiroauto.model.entity;
 
 public enum FrequencyType {
     DAILY("Diaria"),

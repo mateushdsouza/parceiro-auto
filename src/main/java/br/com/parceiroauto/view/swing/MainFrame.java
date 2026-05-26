@@ -1,9 +1,9 @@
 package br.com.parceiroauto.view.swing;
 
 import br.com.parceiroauto.confg.AppContext;
-import br.com.parceiroauto.entity.*;
-import br.com.parceiroauto.service.RecurrenceRuleService;
-import br.com.parceiroauto.service.TransactionService;
+import br.com.parceiroauto.model.entity.*;
+import br.com.parceiroauto.model.service.RecurrenceRuleService;
+import br.com.parceiroauto.model.service.TransactionService;
 import br.com.parceiroauto.view.swing.chart.TransactionPieChartPanel;
 import jiconfont.icons.elusive.Elusive;
 import jiconfont.swing.IconFontSwing;
@@ -548,14 +548,14 @@ public class MainFrame extends JFrame {
 
     private String buildUserInfoText() {
         if (user == null || userCompany == null) {
-            return "empresa: não informada | perfil: não informado | saldo total: " + formatMoney(BigDecimal.ZERO);
+            return "Empresa: não informada | Perfil: não informado | Saldo total: " + formatMoney(BigDecimal.ZERO);
         }
 
         Company company = userCompany.getCompany();
         String companyName = company == null ? "empresa não informada" : company.getNomeFantasia();
-        return "empresa: " + companyName
-                + " | perfil: " + userCompany.getRole()
-                + " | saldo total: " + formatMoney(calculateCompanyBalance(company));
+        return "Empresa: " + companyName
+                + " | Perfil: " + userCompany.getRole()
+                + " | Saldo total: " + formatMoney(calculateCompanyBalance(company));
     }
 
     private String getUserDisplayName() {

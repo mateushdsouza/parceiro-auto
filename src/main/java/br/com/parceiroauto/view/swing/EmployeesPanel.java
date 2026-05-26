@@ -1,10 +1,10 @@
 package br.com.parceiroauto.view.swing;
 
 import br.com.parceiroauto.controller.EmployeeController;
-import br.com.parceiroauto.entity.Company;
-import br.com.parceiroauto.entity.User;
-import br.com.parceiroauto.entity.UserCompany;
-import br.com.parceiroauto.entity.UserCompanyRole;
+import br.com.parceiroauto.model.entity.Company;
+import br.com.parceiroauto.model.entity.User;
+import br.com.parceiroauto.model.entity.UserCompany;
+import br.com.parceiroauto.model.entity.UserCompanyRole;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

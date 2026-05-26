@@ -1,6 +1,6 @@
-package br.com.parceiroauto.repository;
+package br.com.parceiroauto.model.repository;
 
-import br.com.parceiroauto.entity.User;
+import br.com.parceiroauto.model.entity.User;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 

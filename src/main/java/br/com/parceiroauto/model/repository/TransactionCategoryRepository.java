@@ -1,8 +1,8 @@
-package br.com.parceiroauto.repository;
+package br.com.parceiroauto.model.repository;
 
-import br.com.parceiroauto.entity.Company;
-import br.com.parceiroauto.entity.TransactionCategory;
-import br.com.parceiroauto.entity.TransactionType;
+import br.com.parceiroauto.model.entity.Company;
+import br.com.parceiroauto.model.entity.TransactionCategory;
+import br.com.parceiroauto.model.entity.TransactionType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 

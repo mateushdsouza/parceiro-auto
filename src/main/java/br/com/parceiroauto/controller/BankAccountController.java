@@ -1,8 +1,8 @@
 package br.com.parceiroauto.controller;
 
-import br.com.parceiroauto.entity.BankAccount;
-import br.com.parceiroauto.entity.Company;
-import br.com.parceiroauto.service.BankAccountService;
+import br.com.parceiroauto.model.entity.BankAccount;
+import br.com.parceiroauto.model.entity.Company;
+import br.com.parceiroauto.model.service.BankAccountService;
 
 import java.util.List;
 

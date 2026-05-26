@@ -1,10 +1,10 @@
-package br.com.parceiroauto.service;
+package br.com.parceiroauto.model.service;
 
-import br.com.parceiroauto.entity.Company;
-import br.com.parceiroauto.entity.User;
-import br.com.parceiroauto.entity.UserCompany;
-import br.com.parceiroauto.entity.UserCompanyRole;
-import br.com.parceiroauto.repository.UserCompanyRepository;
+import br.com.parceiroauto.model.entity.Company;
+import br.com.parceiroauto.model.entity.User;
+import br.com.parceiroauto.model.entity.UserCompany;
+import br.com.parceiroauto.model.entity.UserCompanyRole;
+import br.com.parceiroauto.model.repository.UserCompanyRepository;
 
 import java.util.List;
 

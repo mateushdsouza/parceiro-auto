@@ -1,6 +1,6 @@
-package br.com.parceiroauto.repository;
+package br.com.parceiroauto.model.repository;
 
-import br.com.parceiroauto.entity.Company;
+import br.com.parceiroauto.model.entity.Company;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import java.util.List;

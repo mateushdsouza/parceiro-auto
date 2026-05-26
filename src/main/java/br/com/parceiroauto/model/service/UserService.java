@@ -1,7 +1,7 @@
-package br.com.parceiroauto.service;
+package br.com.parceiroauto.model.service;
 
-import br.com.parceiroauto.entity.User;
-import br.com.parceiroauto.repository.UserRepository;
+import br.com.parceiroauto.model.entity.User;
+import br.com.parceiroauto.model.repository.UserRepository;
 
 public class UserService {
     private final UserRepository userRepository;

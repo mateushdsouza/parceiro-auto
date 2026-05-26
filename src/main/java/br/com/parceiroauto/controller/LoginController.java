@@ -1,7 +1,7 @@
 package br.com.parceiroauto.controller;
 
-import br.com.parceiroauto.entity.User;
-import br.com.parceiroauto.service.UserService;
+import br.com.parceiroauto.model.entity.User;
+import br.com.parceiroauto.model.service.UserService;
 
 public class LoginController {
     private final UserService userService;

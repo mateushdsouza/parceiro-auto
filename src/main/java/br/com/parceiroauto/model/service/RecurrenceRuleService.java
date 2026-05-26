@@ -1,10 +1,10 @@
-package br.com.parceiroauto.service;
+package br.com.parceiroauto.model.service;
 
-import br.com.parceiroauto.entity.FrequencyType;
-import br.com.parceiroauto.entity.Company;
-import br.com.parceiroauto.entity.RecurrenceRule;
-import br.com.parceiroauto.entity.Transaction;
-import br.com.parceiroauto.repository.RecurrenceRuleRepository;
+import br.com.parceiroauto.model.entity.FrequencyType;
+import br.com.parceiroauto.model.entity.Company;
+import br.com.parceiroauto.model.entity.RecurrenceRule;
+import br.com.parceiroauto.model.entity.Transaction;
+import br.com.parceiroauto.model.repository.RecurrenceRuleRepository;
 
 import java.util.Comparator;
 import java.time.LocalDate;

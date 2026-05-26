@@ -1,8 +1,8 @@
 package br.com.parceiroauto.controller;
 
-import br.com.parceiroauto.entity.User;
-import br.com.parceiroauto.entity.UserCompany;
-import br.com.parceiroauto.service.UserCompanyService;
+import br.com.parceiroauto.model.entity.User;
+import br.com.parceiroauto.model.entity.UserCompany;
+import br.com.parceiroauto.model.service.UserCompanyService;
 
 import java.util.List;
 

@@ -6,10 +6,10 @@ import br.com.parceiroauto.controller.LoginCompanyController;
 import br.com.parceiroauto.controller.LoginController;
 import br.com.parceiroauto.controller.RegisterCompanyController;
 import br.com.parceiroauto.controller.RegisterController;
-import br.com.parceiroauto.service.BankAccountService;
-import br.com.parceiroauto.service.RecurrenceRuleService;
-import br.com.parceiroauto.service.TransactionCategoryService;
-import br.com.parceiroauto.service.TransactionService;
+import br.com.parceiroauto.model.service.BankAccountService;
+import br.com.parceiroauto.model.service.RecurrenceRuleService;
+import br.com.parceiroauto.model.service.TransactionCategoryService;
+import br.com.parceiroauto.model.service.TransactionService;
 
 public class AppContext {
     private final LoginController loginController;

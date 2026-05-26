@@ -1,10 +1,10 @@
 package br.com.parceiroauto.controller;
 
-import br.com.parceiroauto.entity.Company;
-import br.com.parceiroauto.entity.User;
-import br.com.parceiroauto.entity.UserCompanyRole;
-import br.com.parceiroauto.service.CompanyService;
-import br.com.parceiroauto.service.UserCompanyService;
+import br.com.parceiroauto.model.entity.Company;
+import br.com.parceiroauto.model.entity.User;
+import br.com.parceiroauto.model.entity.UserCompanyRole;
+import br.com.parceiroauto.model.service.CompanyService;
+import br.com.parceiroauto.model.service.UserCompanyService;
 
 public class RegisterCompanyController {
     private final CompanyService companyService;

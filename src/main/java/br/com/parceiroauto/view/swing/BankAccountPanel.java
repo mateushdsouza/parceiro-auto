@@ -1,9 +1,9 @@
 package br.com.parceiroauto.view.swing;
 
 import br.com.parceiroauto.controller.BankAccountController;
-import br.com.parceiroauto.entity.BankAccount;
-import br.com.parceiroauto.entity.Company;
-import br.com.parceiroauto.entity.UserCompanyRole;
+import br.com.parceiroauto.model.entity.BankAccount;
+import br.com.parceiroauto.model.entity.Company;
+import br.com.parceiroauto.model.entity.UserCompanyRole;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

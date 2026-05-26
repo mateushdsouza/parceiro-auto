@@ -2,8 +2,8 @@ package br.com.parceiroauto.view.swing;
 
 import br.com.parceiroauto.confg.AppContext;
 import br.com.parceiroauto.controller.LoginCompanyController;
-import br.com.parceiroauto.entity.User;
-import br.com.parceiroauto.entity.UserCompany;
+import br.com.parceiroauto.model.entity.User;
+import br.com.parceiroauto.model.entity.UserCompany;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

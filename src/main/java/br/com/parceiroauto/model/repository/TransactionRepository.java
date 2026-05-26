@@ -1,7 +1,7 @@
-package br.com.parceiroauto.repository;
+package br.com.parceiroauto.model.repository;
 
-import br.com.parceiroauto.entity.BankAccount;
-import br.com.parceiroauto.entity.Transaction;
+import br.com.parceiroauto.model.entity.BankAccount;
+import br.com.parceiroauto.model.entity.Transaction;
 import jakarta.persistence.EntityManager;
 
 import java.util.List;
@@ -34,7 +34,7 @@ public class TransactionRepository {
                 .getResultList();
     }
 
-    public List<Transaction> findByCompany(br.com.parceiroauto.entity.Company company) {
+    public List<Transaction> findByCompany(br.com.parceiroauto.model.entity.Company company) {
         return em.createQuery(
                         "SELECT t FROM Transaction t WHERE t.company = :company ORDER BY t.data DESC, t.id DESC",
                         Transaction.class

@@ -1,18 +1,18 @@
 package br.com.parceiroauto.view.swing;
 
-import br.com.parceiroauto.entity.BankAccount;
-import br.com.parceiroauto.entity.Company;
-import br.com.parceiroauto.entity.FrequencyType;
-import br.com.parceiroauto.entity.RecurrenceRule;
-import br.com.parceiroauto.entity.Transaction;
-import br.com.parceiroauto.entity.TransactionCategory;
-import br.com.parceiroauto.entity.TransactionForm;
-import br.com.parceiroauto.entity.TransactionType;
-import br.com.parceiroauto.entity.UserCompanyRole;
-import br.com.parceiroauto.service.BankAccountService;
-import br.com.parceiroauto.service.RecurrenceRuleService;
-import br.com.parceiroauto.service.TransactionCategoryService;
-import br.com.parceiroauto.service.TransactionService;
+import br.com.parceiroauto.model.entity.BankAccount;
+import br.com.parceiroauto.model.entity.Company;
+import br.com.parceiroauto.model.entity.FrequencyType;
+import br.com.parceiroauto.model.entity.RecurrenceRule;
+import br.com.parceiroauto.model.entity.Transaction;
+import br.com.parceiroauto.model.entity.TransactionCategory;
+import br.com.parceiroauto.model.entity.TransactionForm;
+import br.com.parceiroauto.model.entity.TransactionType;
+import br.com.parceiroauto.model.entity.UserCompanyRole;
+import br.com.parceiroauto.model.service.BankAccountService;
+import br.com.parceiroauto.model.service.RecurrenceRuleService;
+import br.com.parceiroauto.model.service.TransactionCategoryService;
+import br.com.parceiroauto.model.service.TransactionService;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

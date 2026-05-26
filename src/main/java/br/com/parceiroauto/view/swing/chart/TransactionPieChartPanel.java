@@ -1,8 +1,8 @@
 package br.com.parceiroauto.view.swing.chart;
 
-import br.com.parceiroauto.entity.Transaction;
-import br.com.parceiroauto.entity.TransactionCategory;
-import br.com.parceiroauto.entity.TransactionType;
+import br.com.parceiroauto.model.entity.Transaction;
+import br.com.parceiroauto.model.entity.TransactionCategory;
+import br.com.parceiroauto.model.entity.TransactionType;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;

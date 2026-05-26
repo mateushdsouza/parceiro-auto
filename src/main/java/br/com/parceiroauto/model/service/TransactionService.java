@@ -1,13 +1,13 @@
-package br.com.parceiroauto.service;
+package br.com.parceiroauto.model.service;
 
-import br.com.parceiroauto.entity.BankAccount;
-import br.com.parceiroauto.entity.Company;
-import br.com.parceiroauto.entity.Transaction;
-import br.com.parceiroauto.entity.TransactionCategory;
-import br.com.parceiroauto.entity.TransactionForm;
-import br.com.parceiroauto.entity.TransactionType;
-import br.com.parceiroauto.repository.BankAccountRepository;
-import br.com.parceiroauto.repository.TransactionRepository;
+import br.com.parceiroauto.model.entity.BankAccount;
+import br.com.parceiroauto.model.entity.Company;
+import br.com.parceiroauto.model.entity.Transaction;
+import br.com.parceiroauto.model.entity.TransactionCategory;
+import br.com.parceiroauto.model.entity.TransactionForm;
+import br.com.parceiroauto.model.entity.TransactionType;
+import br.com.parceiroauto.model.repository.BankAccountRepository;
+import br.com.parceiroauto.model.repository.TransactionRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
